@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Tiket Saya - Tuntas IT Desk{% endblock %}
+{% block breadcrumb %}Overview Tiket Saya{% endblock %}
+{% block page_title %}Tiket Aduan Saya{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Metric Strip Cards -->
+    <div class="synthex-card p-6 grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+        <!-- Metric 1 -->
+        <div class="space-y-1 pr-4">
+            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+                <span>Total Tiket Saya</span>
+                <i data-lucide="ticket" class="w-4 h-4 text-teal-600"></i>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-extrabold text-slate-900">{{ tickets|length }}</span>
+                <span class="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">Terdaftar</span>
+            </div>
+        </div>
+
+        <!-- Metric 2 -->
+        <div class="space-y-1 pt-4 md:pt-0 md:px-4">
+            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+                <span>Status Open</span>
+                <i data-lucide="alert-circle" class="w-4 h-4 text-rose-500"></i>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-extrabold text-slate-900">
+                    {% for t in tickets %}{% if t.status == 'OPEN' %}{{ forloop.counter }}{% endif %}{% empty %}0{% endfor %}
+                </span>
+                <span class="text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">Antrean IT</span>
+            </div>
+        </div>
+
+        <!-- Metric 3 -->
+        <div class="space-y-1 pt-4 md:pt-0 md:px-4">
+            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+                <span>In Progress</span>
+                <i data-lucide="clock" class="w-4 h-4 text-amber-500"></i>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-extrabold text-slate-900">
+                    {% for t in tickets %}{% if t.status == 'IN_PROGRESS' %}{{ forloop.counter }}{% endif %}{% empty %}0{% endfor %}
+                </span>
+                <span class="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">Diproses</span>
+            </div>
+        </div>
+
+        <!-- Metric 4 -->
+        <div class="space-y-1 pt-4 md:pt-0 md:pl-4">
+            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+                <span>Selesai (Resolved)</span>
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-extrabold text-slate-900">
+                    {% for t in tickets %}{% if t.status == 'RESOLVED' %}{{ forloop.counter }}{% endif %}{% empty %}0{% endfor %}
+                </span>
+                <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Tuntas</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Container Card -->
+    <div class="synthex-card overflow-hidden">
+        <!-- Filter Controls -->
+        <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50">
+            <div class="flex items-center gap-2 bg-slate-200/70 p-1 rounded-xl">
+                <a href="{% url 'my_tickets' %}" 
+                   class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all {% if not request.GET.status %}bg-white text-slate-900 shadow-xs{% else %}text-slate-500 hover:text-slate-800{% endif %}">
+                    Semua
+                </a>
+                <a href="{% url 'my_tickets' %}?status=OPEN" 
+                   class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all {% if request.GET.status == 'OPEN' %}bg-white text-rose-600 shadow-xs{% else %}text-slate-500 hover:text-slate-800{% endif %}">
+                    Open
+                </a>
+                <a href="{% url 'my_tickets' %}?status=IN_PROGRESS" 
+                   class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all {% if request.GET.status == 'IN_PROGRESS' %}bg-white text-amber-600 shadow-xs{% else %}text-slate-500 hover:text-slate-800{% endif %}">
+                    In Progress
+                </a>
+                <a href="{% url 'my_tickets' %}?status=RESOLVED" 
+                   class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all {% if request.GET.status == 'RESOLVED' %}bg-white text-emerald-600 shadow-xs{% else %}text-slate-500 hover:text-slate-800{% endif %}">
+                    Resolved
+                </a>
+            </div>
+
+            <a href="{% url 'ticket_create' %}" class="btn-teal px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Buat Aduan Baru
+            </a>
+        </div>
+
+        <!-- Table View -->
+        {% if tickets %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200 text-[11px] uppercase font-bold text-slate-400 bg-slate-50/80 tracking-wider">
+                            <th class="py-3.5 px-6">Judul Tiket & ID</th>
+                            <th class="py-3.5 px-4">Kategori</th>
+                            <th class="py-3.5 px-4">Prioritas</th>
+                            <th class="py-3.5 px-4">Status</th>
+                            <th class="py-3.5 px-4">Teknisi</th>
+                            <th class="py-3.5 px-4">Tanggal Buat</th>
+                            <th class="py-3.5 px-6 text-right">Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-xs font-medium">
+                        {% for ticket in tickets %}
+                            <tr class="hover:bg-slate-50 transition-colors group">
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs flex-shrink-0
+                                            {% if ticket.priority == 'URGENT' %}bg-rose-600
+                                            {% elif ticket.priority == 'HIGH' %}bg-rose-500
+                                            {% elif ticket.priority == 'MEDIUM' %}bg-amber-500
+                                            {% else %}bg-emerald-600{% endif %}">
+                                            {{ ticket.title|slice:":1"|upper }}
+                                        </div>
+                                        <div class="space-y-0.5">
+                                            <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="font-bold text-slate-900 group-hover:text-teal-700 transition-colors block line-clamp-1">
+                                                {{ ticket.title }}
+                                            </a>
+                                            <span class="text-[11px] font-mono text-slate-400 font-semibold">{{ ticket.ticket_id }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="py-4 px-4 text-slate-600">
+                                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-700">
+                                        {{ ticket.category.name }}
+                                    </span>
+                                </td>
+
+                                <td class="py-4 px-4">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-flex items-center gap-1
+                                        {% if ticket.priority == 'URGENT' or ticket.priority == 'HIGH' %}pill-soft-red
+                                        {% elif ticket.priority == 'MEDIUM' %}pill-soft-amber
+                                        {% else %}pill-soft-emerald{% endif %}">
+                                        <i data-lucide="flag" class="w-3 h-3"></i>
+                                        {{ ticket.get_priority_display }}
+                                    </span>
+                                </td>
+
+                                <td class="py-4 px-4">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-flex items-center gap-1.5
+                                        {% if ticket.status == 'OPEN' %}pill-soft-red
+                                        {% elif ticket.status == 'IN_PROGRESS' %}pill-soft-amber
+                                        {% elif ticket.status == 'RESOLVED' %}pill-soft-emerald
+                                        {% else %}pill-soft-slate{% endif %}">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                        {{ ticket.get_status_display }}
+                                    </span>
+                                </td>
+
+                                <td class="py-4 px-4 text-slate-600">
+                                    {% if ticket.assigned_to %}
+                                        <span class="font-semibold text-slate-700 flex items-center gap-1">
+                                            <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                            {{ ticket.assigned_to.username }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-slate-400 italic">Belum ada</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="py-4 px-4 text-slate-500 text-[11px]">
+                                    {{ ticket.created_at|date:"d M Y, H:i" }}
+                                </td>
+
+                                <td class="py-4 px-6 text-right">
+                                    <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors inline-flex items-center gap-1">
+                                        <span>Lihat</span>
+                                        <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if is_paginated %}
+                <div class="p-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+                    <div>Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}</div>
+                    <div class="flex items-center gap-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-semibold">Sebelumnya</a>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-semibold">Selanjutnya</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+        {% else %}
+            <div class="p-12 text-center space-y-3">
+                <i data-lucide="inbox" class="w-10 h-10 text-slate-300 mx-auto"></i>
+                <h3 class="text-sm font-bold text-slate-800">Belum Ada Tiket Aduan</h3>
+                <p class="text-xs text-slate-400">Silakan buat tiket baru jika mengalami masalah IT kantor.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

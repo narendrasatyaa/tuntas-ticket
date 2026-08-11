@@ -1,0 +1,108 @@
+/* Friendly Clean Light Dashboard Theme for Tuntas (Teal / Emerald / Flat Solid Colors) */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
+  --accent-teal: #0d9488;
+  --accent-teal-hover: #0f766e;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+/* Light Card Styling */
+.synthex-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
+  border-radius: 1.25rem;
+}
+
+.synthex-input {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  transition: all 0.2s ease;
+}
+
+.synthex-input:focus {
+  border-color: var(--accent-teal) !important;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15) !important;
+  outline: none !important;
+}
+
+/* Solid Flat Buttons (NO Gradients) */
+.btn-teal {
+  background-color: #0d9488;
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.btn-teal:hover {
+  background-color: #0f766e;
+}
+
+.btn-emerald {
+  background-color: #059669;
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.btn-emerald:hover {
+  background-color: #047857;
+}
+
+/* Status & Priority Soft Pills */
+.pill-soft-red {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.pill-soft-amber {
+  background-color: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.pill-soft-emerald {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.pill-soft-teal {
+  background-color: #f0fdfa;
+  color: #0d9488;
+  border: 1px solid #99f6e4;
+}
+
+.pill-soft-slate {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Buat Tiket Aduan Baru - Tuntas IT Desk{% endblock %}
+{% block breadcrumb %}Buat Tiket Baru{% endblock %}
+{% block page_title %}Formulir Pengajuan Aduan IT{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-2 space-y-6">
+    <div class="flex items-center justify-between">
+        <p class="text-xs text-slate-500">Isi detail aduan kendala IT Anda di bawah ini agar segera ditangani teknisi.</p>
+        <a href="{% url 'my_tickets' %}" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-colors flex items-center gap-1.5 shadow-xs">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+            Kembali
+        </a>
+    </div>
+
+    <div class="synthex-card p-6 sm:p-8 space-y-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="space-y-2">
+                <label for="{{ form.title.id_for_label }}" class="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Judul Aduan / Masalah <span class="text-rose-600">*</span>
+                </label>
+                <input type="text" name="title" id="{{ form.title.id_for_label }}" required 
+                       value="{{ form.title.value|default:'' }}"
+                       class="synthex-input w-full px-4 py-3 rounded-xl text-sm placeholder-slate-400"
+                       placeholder="Contoh: Printer kantor lantai 2 tidak terdeteksi dari laptop">
+                {% if form.title.errors %}
+                    <p class="text-xs text-rose-600 font-medium">{{ form.title.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label for="{{ form.category.id_for_label }}" class="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                        Kategori Kendala <span class="text-rose-600">*</span>
+                    </label>
+                    <select name="category" id="{{ form.category.id_for_label }}" required class="synthex-input w-full px-4 py-3 rounded-xl text-sm">
+                        <option value="">-- Pilih Kategori --</option>
+                        {% for choice in form.category.field.queryset %}
+                            <option value="{{ choice.pk }}" {% if form.category.value|stringformat:"s" == choice.pk|stringformat:"s" %}selected{% endif %}>
+                                {{ choice.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.category.errors %}
+                        <p class="text-xs text-rose-600 font-medium">{{ form.category.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="space-y-2">
+                    <label for="{{ form.priority.id_for_label }}" class="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                        Tingkat Prioritas <span class="text-rose-600">*</span>
+                    </label>
+                    <select name="priority" id="{{ form.priority.id_for_label }}" required class="synthex-input w-full px-4 py-3 rounded-xl text-sm">
+                        {% for val, label in form.priority.field.choices %}
+                            <option value="{{ val }}" {% if form.priority.value == val %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.priority.errors %}
+                        <p class="text-xs text-rose-600 font-medium">{{ form.priority.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label for="{{ form.description.id_for_label }}" class="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Deskripsi Masalah Lengkap <span class="text-rose-600">*</span>
+                </label>
+                <textarea name="description" id="{{ form.description.id_for_label }}" rows="5" required 
+                          class="synthex-input w-full px-4 py-3 rounded-xl text-sm placeholder-slate-400"
+                          placeholder="Jelaskan secara rinci kronologi masalah, pesan error, atau lokasi perangkat..."></textarea>
+                {% if form.description.errors %}
+                    <p class="text-xs text-rose-600 font-medium">{{ form.description.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="space-y-2">
+                <label for="{{ form.attachment.id_for_label }}" class="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Lampiran Foto / Dokumen Pendukung (Opsional)
+                </label>
+                <div class="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-300 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="paperclip" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <input type="file" name="attachment" id="{{ form.attachment.id_for_label }}" 
+                               class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300">
+                        <p class="text-[10px] text-slate-400 mt-1">Dapat berupa screenshot error (.png, .jpg, .pdf, .docx, .zip)</p>
+                    </div>
+                </div>
+                {% if form.attachment.errors %}
+                    <p class="text-xs text-rose-600 font-medium">{{ form.attachment.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+                <a href="{% url 'my_tickets' %}" class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">
+                    Batal
+                </a>
+                <button type="submit" class="btn-teal px-6 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                    <span>Kirim Aduan</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
