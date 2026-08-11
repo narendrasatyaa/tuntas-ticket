@@ -4,7 +4,23 @@ from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
 
 
+class UserProfile(models.Model):
+    class Role(models.TextChoices):
+        REQUESTER = 'REQUESTER', 'Karyawan (Pelapor Aduan)'
+        TECHNICIAN = 'TECHNICIAN', 'Teknisi IT (Fiksasi Kendala)'
+        IT_LEAD = 'IT_LEAD', 'IT Lead / Supervisor Support'
+        ADMIN = 'ADMIN', 'Administrator (Kelola Semua System)'
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.REQUESTER)
+    department = models.CharField(max_length=100, blank=True, null=True, verbose_name="Departemen / Divisi")
+
+    def __str__(self):
+        return f"{self.user.username} ({self.get_role_display()})"
+
+
 class Category(models.Model):
+
     name = models.CharField(max_length=100, unique=True, verbose_name="Nama Kategori")
     description = models.TextField(blank=True, null=True, verbose_name="Deskripsi")
     is_active = models.BooleanField(default=True, verbose_name="Aktif")

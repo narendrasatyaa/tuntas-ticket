@@ -1,67 +1,92 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - TUNTAS IT Helpdesk System</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo-tuntas.png' %}">
 
-{% block title %}Login - Tuntas IT Desk{% endblock %}
-{% block breadcrumb %}Authentikasi{% endblock %}
-{% block page_title %}Login Pengguna{% endblock %}
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-{% block content %}
-<div class="min-h-[70vh] flex items-center justify-center py-8">
-    <div class="w-full max-w-md">
-        <div class="synthex-card p-8 space-y-6">
-            <div class="text-center space-y-2">
-                <div class="w-12 h-12 rounded-2xl bg-teal-600 flex items-center justify-center text-white mx-auto shadow-sm">
-                    <i data-lucide="check-check" class="w-7 h-7 stroke-[2.5]"></i>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/reactbits.css' %}">
+</head>
+<body class="bg-[#f8fafc] dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 min-h-screen flex flex-col items-center justify-between p-6 antialiased selection:bg-teal-500 selection:text-white">
+
+    <!-- Top Spacer for True Vertical Balance -->
+    <div class="w-full max-w-md"></div>
+
+    <!-- Main Centered Login Card -->
+    <div class="w-full max-w-md my-auto">
+        <div class="synthex-card p-8 space-y-6 shadow-xl relative overflow-hidden bg-white dark:bg-[#131b2e] border border-slate-200/80 dark:border-slate-800 rounded-3xl">
+            
+            <!-- Logo & Brand Header -->
+            <div class="text-center space-y-3">
+                <div class="flex items-center justify-center gap-3">
+                    <img src="{% static 'images/logo-tuntas.png' %}" alt="Tuntas Logo" class="w-12 h-12 object-contain" />
                 </div>
-                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Selamat Datang di TUNTAS.</h1>
-                <p class="text-xs text-slate-500">Masuk untuk mengelola & memantau tiket aduan IT kantor.</p>
+                <h1 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Login Pengguna System</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Masuk untuk mengelola & memantau tiket aduan IT kantor.</p>
             </div>
 
+            <!-- Error Alert -->
             {% if form.errors %}
-                <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
-                    <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600 flex-shrink-0"></i>
-                    <span>Username atau password tidak cocok. Silakan coba lagi.</span>
+                <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2.5">
+                    <i data-lucide="alert-circle" class="w-4.5 h-4.5 text-rose-500 flex-shrink-0"></i>
+                    <span>Username atau password salah. Silakan coba lagi.</span>
                 </div>
             {% endif %}
 
+            <!-- Login Form -->
             <form method="post" action="{% url 'login' %}" class="space-y-4">
                 {% csrf_token %}
                 <div>
-                    <label for="id_username" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Username</label>
+                    <label for="id_username" class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Username</label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <i data-lucide="user" class="w-4 h-4"></i>
                         </div>
                         <input type="text" name="username" id="id_username" required autofocus 
-                               class="synthex-input w-full pl-9 pr-3 py-2.5 rounded-xl text-xs"
-                               placeholder="Masukkan username">
+                               class="synthex-input w-full pl-10 pr-3 py-2.5 rounded-xl text-xs"
+                               placeholder="Masukkan username (contoh: budi, teknisi, lead, admin)">
                     </div>
                 </div>
 
                 <div>
-                    <label for="id_password" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Password</label>
+                    <label for="id_password" class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Password</label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <i data-lucide="lock" class="w-4 h-4"></i>
                         </div>
                         <input type="password" name="password" id="id_password" required 
-                               class="synthex-input w-full pl-9 pr-3 py-2.5 rounded-xl text-xs"
+                               class="synthex-input w-full pl-10 pr-3 py-2.5 rounded-xl text-xs"
                                placeholder="••••••••">
                     </div>
                 </div>
 
                 <button type="submit" class="w-full btn-teal py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs mt-4">
-                    <span>Login Masuk</span>
+                    <span>Masuk ke Dashboard</span>
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </button>
             </form>
-
-            <div class="pt-4 border-t border-slate-100 text-center text-[11px] text-slate-500 space-y-1">
-                <p class="font-bold text-slate-700">Akun Login Demo:</p>
-                <p>Requester (Karyawan): <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-teal-800 font-semibold">budi_requester</code> / <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono font-semibold">password123</code></p>
-                <p>Teknisi IT (Support): <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-teal-800 font-semibold">teknisi_it</code> / <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono font-semibold">password123</code></p>
-                <p>Admin / Manager: <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-teal-800 font-semibold">admin</code> / <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono font-semibold">password123</code></p>
-            </div>
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <!-- Footer Paling Bawah (At the Very Bottom) -->
+    <footer class="w-full text-center py-4 text-xs text-slate-400 dark:text-slate-500 mt-auto flex items-center justify-center gap-2">
+        <img src="{% static 'images/logo-tuntas.png' %}" alt="Tuntas" class="w-4 h-4 object-contain" />
+        <span class="font-bold text-slate-700 dark:text-slate-300">TUNTAS.</span> &copy; 2026 Internal IT Helpdesk System. All rights reserved.
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

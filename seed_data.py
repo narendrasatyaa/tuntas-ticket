@@ -5,10 +5,10 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from django.contrib.auth.models import User
-from tickets.models import Category, Ticket, TicketComment
+from tickets.models import Category, Ticket, TicketComment, UserProfile
 
 def seed():
-    print("Seeding initial data for Tuntas...")
+    print("Seeding roles & initial data for Tuntas...")
 
     # 1. Create Initial Categories
     categories_data = [
@@ -26,41 +26,70 @@ def seed():
             defaults={"description": cat["description"]}
         )
         categories[cat["name"]] = obj
-        print(f"Category '{cat['name']}' ready.")
 
-    # 2. Create Sample Users
-    # Admin / IT Manager
+    # 2. Create Users with Explicit Roles
+
+    # A. ADMIN (Superuser - Kelola Semua System)
     admin_user, _ = User.objects.get_or_create(username="admin", defaults={
         "email": "admin@kantor.com",
-        "first_name": "Admin",
-        "last_name": "IT Lead",
+        "first_name": "System",
+        "last_name": "Administrator",
         "is_staff": True,
         "is_superuser": True
     })
     admin_user.set_password("password123")
+    admin_user.is_superuser = True
+    admin_user.is_staff = True
     admin_user.save()
+    UserProfile.objects.update_or_create(user=admin_user, defaults={"role": UserProfile.Role.ADMIN, "department": "IT Management"})
 
-    # IT Technician
-    tech_user, _ = User.objects.get_or_create(username="teknisi_it", defaults={
+    # B. IT LEAD / SUPERVISOR (Supervisor Support - Monitor SLA & Assign Team)
+    lead_user, _ = User.objects.get_or_create(username="lead", defaults={
+        "email": "lead@kantor.com",
+        "first_name": "Hendky",
+        "last_name": "IT Supervisor",
+        "is_staff": True,
+        "is_superuser": False
+    })
+    lead_user.set_password("password123")
+    lead_user.is_staff = True
+    lead_user.is_superuser = False
+    lead_user.save()
+    UserProfile.objects.update_or_create(user=lead_user, defaults={"role": UserProfile.Role.IT_LEAD, "department": "IT Support Desk"})
+
+    # C. TECHNICIAN (Teknisi Support - Fokus Fiksasi Kendala)
+    tech_user, _ = User.objects.get_or_create(username="teknisi", defaults={
         "email": "teknisi@kantor.com",
         "first_name": "Rizky",
-        "last_name": "Support",
-        "is_staff": True
+        "last_name": "Support Fiksasi",
+        "is_staff": True,
+        "is_superuser": False
     })
     tech_user.set_password("password123")
+    tech_user.is_staff = True
+    tech_user.is_superuser = False
     tech_user.save()
+    UserProfile.objects.update_or_create(user=tech_user, defaults={"role": UserProfile.Role.TECHNICIAN, "department": "Hardware & Network"})
 
-    # Requester / Employee
-    user_budi, _ = User.objects.get_or_create(username="budi_requester", defaults={
+    # D. REQUESTER (Karyawan - Fokus Aduan)
+    budi_user, _ = User.objects.get_or_create(username="budi", defaults={
         "email": "budi@kantor.com",
         "first_name": "Budi",
         "last_name": "Santoso",
-        "is_staff": False
+        "is_staff": False,
+        "is_superuser": False
     })
-    user_budi.set_password("password123")
-    user_budi.save()
+    budi_user.set_password("password123")
+    budi_user.is_staff = False
+    budi_user.is_superuser = False
+    budi_user.save()
+    UserProfile.objects.update_or_create(user=budi_user, defaults={"role": UserProfile.Role.REQUESTER, "department": "Keuangan"})
 
-    print("Users created: admin, teknisi_it, budi_requester (password: password123)")
+    print("Created 4 accounts with distinct roles:")
+    print("1. admin (ADMIN / Superuser)")
+    print("2. lead (IT_LEAD / Supervisor)")
+    print("3. teknisi (TECHNICIAN / Fiksasi Kendala)")
+    print("4. budi (REQUESTER / Fokus Aduan)")
 
     # 3. Create Sample Tickets
     t1, created1 = Ticket.objects.get_or_create(
@@ -70,7 +99,7 @@ def seed():
             "category": categories["Hardware"],
             "priority": Ticket.Priority.HIGH,
             "status": Ticket.Status.IN_PROGRESS,
-            "created_by": user_budi,
+            "created_by": budi_user,
             "assigned_to": tech_user
         }
     )
@@ -79,13 +108,13 @@ def seed():
         TicketComment.objects.create(
             ticket=t1,
             author=tech_user,
-            comment="Sedang saya cek dengan adaptor cadangan di meja IT.",
+            comment="Pemeriksaan awal fiksasi: Charger utama rusak, sedang disiapkan charger pengganti.",
             is_internal_note=False
         )
         TicketComment.objects.create(
             ticket=t1,
-            author=tech_user,
-            comment="Kemungkinan ic power rusak, perlu klaim garansi vendor.",
+            author=lead_user,
+            comment="Catatan Lead: Tolong segera proses penggantian unit jika IC power bermasalah.",
             is_internal_note=True
         )
 
@@ -96,31 +125,11 @@ def seed():
             "category": categories["Network & Wi-Fi"],
             "priority": Ticket.Priority.MEDIUM,
             "status": Ticket.Status.OPEN,
-            "created_by": user_budi
+            "created_by": budi_user
         }
     )
 
-    t3, created3 = Ticket.objects.get_or_create(
-        title="Lupa Password Email Kantor",
-        defaults={
-            "description": "Mohon bantuan reset password email budi@kantor.com karena terkunci setelah salah ketik 3 kali.",
-            "category": categories["Account & Access"],
-            "priority": Ticket.Priority.URGENT,
-            "status": Ticket.Status.RESOLVED,
-            "created_by": user_budi,
-            "assigned_to": tech_user
-        }
-    )
-
-    if created3:
-        TicketComment.objects.create(
-            ticket=t3,
-            author=tech_user,
-            comment="Password sementara telah dikirimkan via WhatsApp terverifikasi. Silakan ganti password saat login pertama.",
-            is_internal_note=False
-        )
-
-    print("Sample tickets created successfully.")
+    print("Database seeding completed.")
 
 if __name__ == '__main__':
     seed()
