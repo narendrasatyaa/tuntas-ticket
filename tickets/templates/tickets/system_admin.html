@@ -1,73 +1,86 @@
 {% extends 'base.html' %}
 
-{% block title %}Master Admin Panel - Tuntas Zenith IT Desk{% endblock %}
+{% block title %}Master Admin Panel - Tuntas Desk{% endblock %}
 {% block breadcrumb %}Master Admin Panel{% endblock %}
-{% block page_title %}Master Pengaturan Sistem & Role{% endblock %}
 
 {% block content %}
-<div class="space-y-6 w-full" x-data="{ addUserModal: false, addCategoryModal: false, searchUser: '' }">
+<div class="space-y-6 w-full max-w-full" x-data="{ 
+    addUserModal: false, 
+    addCategoryModal: false,
+    editUserModal: false,
+    deleteUserModal: false,
+    editCategoryModal: false,
+    exportReportModal: false,
+    selectedUser: {},
+    selectedCategory: {},
+    searchUser: '' 
+}">
 
-    <!-- 1. Header Banner (Clean without Left Border) -->
-    <div class="zenith-card p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <!-- Header Banner -->
+    <div class="unfold-card p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 w-full">
         <div class="space-y-1">
             <div class="flex items-center gap-2">
-                <span class="px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold uppercase tracking-wider">
-                    Superuser Access
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                    Superuser Control
                 </span>
-                <span class="text-xs text-slate-400">• Master Control Panel</span>
             </div>
             <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Kelola Master Data & Peran Pengguna</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Atur akun pengguna, penugasan role (Hak Akses), dan kategori tiket kantor dalam 1 lokasi terpadu.</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Atur akun pengguna (Add, Edit, Role, Delete), kategori tiket, dan penugasan tim IT dalam 1 lokasi terpadu.</p>
         </div>
 
-        <div class="flex items-center gap-3">
-            <button @click="addUserModal = true" class="btn-teal px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs">
+        <div class="flex items-center gap-3 flex-wrap">
+            <button @click="exportReportModal = true" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors flex items-center gap-2 border border-slate-200 dark:border-slate-700 shadow-2xs">
+                <i data-lucide="download" class="w-4 h-4 text-teal-600"></i> Download Laporan Penilaian
+            </button>
+
+            <button @click="addUserModal = true" class="btn-teal px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs">
                 <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah User Baru
             </button>
-            <button @click="addCategoryModal = true" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-2">
+            <button @click="addCategoryModal = true" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors flex items-center gap-2">
                 <i data-lucide="plus" class="w-4 h-4 text-teal-600"></i> Tambah Kategori
             </button>
         </div>
     </div>
 
-    <!-- 2. Master Stat Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="zenith-card p-4 flex items-center gap-3">
+
+    <!-- Master Stat Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+        <div class="unfold-card p-4 flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0 font-bold">
                 <i data-lucide="users" class="w-5 h-5"></i>
             </div>
             <div>
-                <span class="text-xs font-semibold text-slate-400 block">Total User Registered</span>
+                <span class="text-xs font-semibold text-slate-400 block">Total User Terdaftar</span>
                 <span class="text-xl font-extrabold text-slate-900 dark:text-white">{{ users|length }} User</span>
             </div>
         </div>
 
-        <div class="zenith-card p-4 flex items-center gap-3">
+        <div class="unfold-card p-4 flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 font-bold">
                 <i data-lucide="shield" class="w-5 h-5"></i>
             </div>
             <div>
-                <span class="text-xs font-semibold text-slate-400 block">Tim Staff IT (Support & Lead)</span>
+                <span class="text-xs font-semibold text-slate-400 block">Tim Staff IT Support</span>
                 <span class="text-xl font-extrabold text-slate-900 dark:text-white">
                     {% for u in users %}{% if u.is_staff %}{% if forloop.last %}{{ forloop.counter }}{% endif %}{% endif %}{% empty %}0{% endfor %} Orang
                 </span>
             </div>
         </div>
 
-        <div class="zenith-card p-4 flex items-center gap-3">
+        <div class="unfold-card p-4 flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0 font-bold">
                 <i data-lucide="user-check" class="w-5 h-5"></i>
             </div>
             <div>
-                <span class="text-xs font-semibold text-slate-400 block">User Requester (Karyawan)</span>
+                <span class="text-xs font-semibold text-slate-400 block">User Requester Karyawan</span>
                 <span class="text-xl font-extrabold text-slate-900 dark:text-white">
                     {% for u in users %}{% if not u.is_staff %}{% if forloop.last %}{{ forloop.counter }}{% endif %}{% endif %}{% empty %}0{% endfor %} Orang
                 </span>
             </div>
         </div>
 
-        <div class="zenith-card p-4 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0 font-bold">
+        <div class="unfold-card p-4 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 font-bold">
                 <i data-lucide="tags" class="w-5 h-5"></i>
             </div>
             <div>
@@ -77,15 +90,15 @@
         </div>
     </div>
 
-    <!-- 3. Section: User & Role Management Table -->
-    <div class="zenith-card overflow-hidden">
+    <!-- Section: User CRUD Table -->
+    <div class="unfold-card overflow-hidden w-full">
         <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
                 <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i data-lucide="users" class="w-4 h-4 text-teal-600 dark:text-teal-400"></i>
-                    Manajemen Pengguna & Peran (Roles)
+                    Manajemen Pengguna & Peran (Roles CRUD)
                 </h2>
-                <p class="text-xs text-slate-400">Atur hak akses pengguna secara langsung dalam sistem.</p>
+                <p class="text-xs text-slate-400">Kelola akun, reset password, dan hak akses peran pengguna.</p>
             </div>
 
             <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -93,24 +106,24 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <i data-lucide="search" class="w-3.5 h-3.5"></i>
                     </div>
-                    <input type="text" x-model="searchUser" class="zenith-input w-full pl-9 pr-3 py-1.5 rounded-xl text-xs" placeholder="Cari nama atau username...">
+                    <input type="text" x-model="searchUser" class="unfold-input w-full pl-9 pr-3 py-1.5 rounded-xl text-xs" placeholder="Cari nama atau username...">
                 </div>
 
-                <button @click="addUserModal = true" class="btn-teal px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs flex-shrink-0">
+                <button @click="addUserModal = true" class="btn-teal px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs flex-shrink-0">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add User
                 </button>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto w-full">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="border-b border-slate-100 dark:border-slate-800 text-[11px] uppercase font-bold text-slate-400 bg-slate-50/60 dark:bg-slate-800/40 tracking-wider">
-                        <th class="py-3 px-6">Pengguna</th>
-                        <th class="py-3 px-4">Departemen</th>
-                        <th class="py-3 px-4">Status Hak Akses</th>
-                        <th class="py-3 px-4">Peran saat ini</th>
-                        <th class="py-3 px-6 text-right">Aksi Ubah Peran</th>
+                        <th class="py-3.5 px-6">Pengguna</th>
+                        <th class="py-3.5 px-4">Departemen</th>
+                        <th class="py-3.5 px-4">Status Hak Akses</th>
+                        <th class="py-3.5 px-4">Peran Saat Ini</th>
+                        <th class="py-3.5 px-6 text-right">Aksi CRUD</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium">
@@ -119,7 +132,7 @@
                             x-show="!searchUser || '{{ u.username }}'.toLowerCase().includes(searchUser.toLowerCase()) || '{{ u.get_full_name }}'.toLowerCase().includes(searchUser.toLowerCase())">
                             <td class="py-3.5 px-6">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold flex items-center justify-center text-xs flex-shrink-0 shadow-xs">
+                                    <div class="w-8 h-8 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold flex items-center justify-center text-xs flex-shrink-0 shadow-2xs">
                                         {{ u.username|slice:":2"|upper }}
                                     </div>
                                     <div class="space-y-0.5">
@@ -162,19 +175,21 @@
                             </td>
 
                             <td class="py-3.5 px-6 text-right">
-                                <form method="post" action="{% url 'update_user_role' u.id %}" class="inline-flex items-center gap-2">
-                                    {% csrf_token %}
-                                    <select name="role" class="zenith-input px-2.5 py-1.5 rounded-xl text-xs font-medium">
-                                        {% for role_val, role_label in roles %}
-                                            <option value="{{ role_val }}" {% if u.profile.role == role_val %}selected{% endif %}>
-                                                {{ role_label }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit" class="btn-teal px-3 py-1.5 rounded-xl text-xs font-bold shadow-xs">
-                                        Simpan
+                                <div class="inline-flex items-center gap-1.5">
+                                    <!-- Edit User Button -->
+                                    <button @click="selectedUser = { id: {{ u.id }}, username: '{{ u.username }}', first_name: '{{ u.first_name }}', last_name: '{{ u.last_name }}', email: '{{ u.email }}', department: '{{ u.profile.department }}', role: '{{ u.profile.role }}' }; editUserModal = true"
+                                            class="p-1.5 rounded-lg text-slate-500 hover:text-teal-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Edit User">
+                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </button>
-                                </form>
+
+                                    <!-- Delete User Button -->
+                                    {% if u != user %}
+                                        <button @click="selectedUser = { id: {{ u.id }}, username: '{{ u.username }}' }; deleteUserModal = true"
+                                                class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors" title="Hapus User">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}
@@ -183,30 +198,111 @@
         </div>
     </div>
 
-    <!-- 4. Section: Category Management Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Section: Ticket Assignment Control Table (Admin Penugasan Tiket) -->
+    <div class="unfold-card overflow-hidden w-full">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div>
+                <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="user-check" class="w-4 h-4 text-teal-600 dark:text-teal-400"></i>
+                    Kelola Penugasan Tiket Tim IT (Assignment Control)
+                </h2>
+                <p class="text-xs text-slate-400">Admin utama memberikan atau mengganti teknisi penanggung jawab untuk setiap tiket.</p>
+            </div>
+            <span class="text-xs font-semibold text-slate-400 font-mono">{{ tickets|length }} Tiket</span>
+        </div>
+
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-100 dark:border-slate-800 text-[11px] uppercase font-bold text-slate-400 bg-slate-50/60 dark:bg-slate-800/40 tracking-wider">
+                        <th class="py-3 px-5">ID & Judul Tiket</th>
+                        <th class="py-3 px-4">Pelapor</th>
+                        <th class="py-3 px-4">Prioritas</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-5">Teknisi Penanggung Jawab</th>
+                        <th class="py-3 px-5 text-right">Detail</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                    {% for t in tickets %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <td class="py-3.5 px-5">
+                                <span class="font-mono text-slate-400 font-bold block text-[10px]">{{ t.ticket_id }}</span>
+                                <a href="{% url 'ticket_detail' t.ticket_id %}" class="font-bold text-slate-900 dark:text-white hover:text-teal-600">
+                                    {{ t.title }}
+                                </a>
+                            </td>
+                            <td class="py-3.5 px-4 font-medium text-slate-700 dark:text-slate-300">
+                                {{ t.created_by.get_full_name|default:t.created_by.username }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold
+                                    {% if t.priority == 'URGENT' or t.priority == 'HIGH' %}pill-soft-red
+                                    {% elif t.priority == 'MEDIUM' %}pill-soft-amber
+                                    {% else %}pill-soft-emerald{% endif %}">
+                                    {{ t.get_priority_display }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold
+                                    {% if t.status == 'OPEN' %}pill-soft-red
+                                    {% elif t.status == 'IN_PROGRESS' %}pill-soft-amber
+                                    {% elif t.status == 'RESOLVED' %}pill-soft-emerald
+                                    {% else %}pill-soft-slate{% endif %}">
+                                    {{ t.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-5">
+                                <form method="post" action="{% url 'update_ticket_status' t.ticket_id %}" class="flex items-center gap-2">
+                                    {% csrf_token %}
+                                    <select name="assigned_to" onchange="this.form.submit()" class="unfold-input px-2.5 py-1 rounded-xl text-xs font-bold">
+                                        <option value="">-- Belum Ditugaskan --</option>
+                                        {% for tech in staff_users %}
+                                            <option value="{{ tech.id }}" {% if t.assigned_to == tech %}selected{% endif %}>
+                                                {{ tech.get_full_name|default:tech.username }} {% if tech == user %}(Saya / Assign Diri Sendiri){% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </td>
+                            <td class="py-3.5 px-5 text-right">
+                                <a href="{% url 'ticket_detail' t.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors">
+                                    Buka
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Section: Category CRUD Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
+
         <!-- Category Table (2 cols) -->
-        <div class="lg:col-span-2 zenith-card overflow-hidden">
+        <div class="lg:col-span-2 unfold-card overflow-hidden">
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
                     <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <i data-lucide="tag" class="w-4 h-4 text-teal-600 dark:text-teal-400"></i>
-                        Master Kategori Tiket
+                        Master Kategori Tiket (Category CRUD)
                     </h2>
-                    <p class="text-xs text-slate-400">Jenis kendala teknis yang tersedia di formulir tiket aduan.</p>
+                    <p class="text-xs text-slate-400">Kelola nama, deskripsi, dan status aktif kategori kendala.</p>
                 </div>
                 <button @click="addCategoryModal = true" class="btn-teal px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i> Tambah Kategori
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto w-full">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-slate-100 dark:border-slate-800 text-[11px] uppercase font-bold text-slate-400 bg-slate-50/60 dark:bg-slate-800/40 tracking-wider">
                             <th class="py-3 px-5">Nama Kategori</th>
                             <th class="py-3 px-4">Deskripsi</th>
-                            <th class="py-3 px-4 text-right">Status</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-5 text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
@@ -217,12 +313,28 @@
                                     {{ cat.name }}
                                 </td>
                                 <td class="py-3.5 px-4 text-slate-500 dark:text-slate-400">{{ cat.description|default:"-" }}</td>
-                                <td class="py-3.5 px-4 text-right">
+                                <td class="py-3.5 px-4">
                                     {% if cat.is_active %}
                                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300">Aktif</span>
                                     {% else %}
                                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">Non-Aktif</span>
                                     {% endif %}
+                                </td>
+                                <td class="py-3.5 px-5 text-right">
+                                    <div class="inline-flex items-center gap-1.5">
+                                        <!-- Edit Category -->
+                                        <button @click="selectedCategory = { id: {{ cat.id }}, name: '{{ cat.name }}', description: '{{ cat.description }}', is_active: {% if cat.is_active %}true{% else %}false{% endif %} }; editCategoryModal = true"
+                                                class="p-1.5 rounded-lg text-slate-500 hover:text-teal-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Edit Kategori">
+                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                        </button>
+                                        <!-- Delete Category -->
+                                        <form method="post" :action="'/tickets/system-admin/category/' + {{ cat.id }} + '/delete/'" class="inline" onsubmit="return confirm('Hapus kategori {{ cat.name }}?')">
+                                            {% csrf_token %}
+                                            <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors" title="Hapus Kategori">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -232,36 +344,36 @@
         </div>
 
         <!-- Inline Add Category Form Card (1 col) -->
-        <div class="zenith-card p-5 space-y-4">
+        <div class="unfold-card p-5 space-y-4">
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i data-lucide="plus-circle" class="w-4 h-4 text-teal-600"></i> Form Tambah Kategori
                 </h3>
-                <p class="text-xs text-slate-400">Buat kategori kendala baru untuk karyawan.</p>
+                <p class="text-xs text-slate-400">Buat jenis kendala baru untuk karyawan.</p>
             </div>
 
             <form method="post" action="{% url 'add_category' %}" class="space-y-4">
                 {% csrf_token %}
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Nama Kategori</label>
-                    <input type="text" name="name" required class="zenith-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Contoh: Mobile App & VPN">
+                    <input type="text" name="name" required class="unfold-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Contoh: Mobile App & VPN">
                 </div>
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Deskripsi Ringkas</label>
-                    <textarea name="description" rows="3" class="zenith-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Penjelasan jenis kendala ini..."></textarea>
+                    <textarea name="description" rows="3" class="unfold-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Penjelasan jenis kendala ini..."></textarea>
                 </div>
 
-                <button type="submit" class="w-full btn-teal py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs">
+                <button type="submit" class="w-full btn-teal py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs">
                     <i data-lucide="check-circle" class="w-4 h-4"></i> Simpan Kategori
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- 5. Alpine Modal: Tambah User Baru -->
+    <!-- MODAL 1: Add User -->
     <div x-show="addUserModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-        <div @click.outside="addUserModal = false" class="zenith-card w-full max-w-lg p-6 space-y-5 bg-white dark:bg-[#131b2e] shadow-2xl relative rounded-3xl">
+        <div @click.outside="addUserModal = false" class="unfold-card w-full max-w-lg p-6 space-y-5 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center">
@@ -272,7 +384,7 @@
                         <p class="text-xs text-slate-400">Buat akun login baru dan tentukan perannya.</p>
                     </div>
                 </div>
-                <button @click="addUserModal = false" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <button @click="addUserModal = false" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -282,39 +394,39 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Username *</label>
-                        <input type="text" name="username" required class="zenith-input w-full px-3 py-2 rounded-xl text-xs" placeholder="contoh: andi">
+                        <input type="text" name="username" required class="unfold-input w-full px-3 py-2 rounded-xl text-xs" placeholder="contoh: andi">
                     </div>
                     <div class="space-y-1">
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Email</label>
-                        <input type="email" name="email" class="zenith-input w-full px-3 py-2 rounded-xl text-xs" placeholder="andi@kantor.com">
+                        <input type="email" name="email" class="unfold-input w-full px-3 py-2 rounded-xl text-xs" placeholder="andi@kantor.com">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Nama Depan</label>
-                        <input type="text" name="first_name" class="zenith-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Andi">
+                        <input type="text" name="first_name" class="unfold-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Andi">
                     </div>
                     <div class="space-y-1">
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Nama Belakang</label>
-                        <input type="text" name="last_name" class="zenith-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Pratama">
+                        <input type="text" name="last_name" class="unfold-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Pratama">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Departemen</label>
-                        <input type="text" name="department" class="zenith-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Keuangan / IT Desk">
+                        <input type="text" name="department" class="unfold-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Keuangan / IT Desk">
                     </div>
                     <div class="space-y-1">
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Password Initial</label>
-                        <input type="text" name="password" value="password123" required class="zenith-input w-full px-3 py-2 rounded-xl text-xs font-mono">
+                        <input type="text" name="password" value="password123" required class="unfold-input w-full px-3 py-2 rounded-xl text-xs font-mono">
                     </div>
                 </div>
 
                 <div class="space-y-1">
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Pilih Peran (Role) *</label>
-                    <select name="role" class="zenith-input w-full px-3 py-2 rounded-xl text-xs font-semibold">
+                    <select name="role" class="unfold-input w-full px-3 py-2 rounded-xl text-xs font-semibold">
                         {% for role_val, role_label in roles %}
                             <option value="{{ role_val }}">{{ role_label }}</option>
                         {% endfor %}
@@ -322,10 +434,10 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" @click="addUserModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <button type="button" @click="addUserModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100">
                         Batal
                     </button>
-                    <button type="submit" class="btn-teal px-5 py-2 rounded-xl text-xs font-bold shadow-xs">
+                    <button type="submit" class="btn-teal px-5 py-2 rounded-xl text-xs font-bold shadow-2xs">
                         Buat User
                     </button>
                 </div>
@@ -333,5 +445,231 @@
         </div>
     </div>
 
+    <!-- MODAL 2: Edit User -->
+    <div x-show="editUserModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div @click.outside="editUserModal = false" class="unfold-card w-full max-w-lg p-6 space-y-5 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+                        <i data-lucide="edit-3" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Edit User @<span x-text="selectedUser.username"></span></h3>
+                        <p class="text-xs text-slate-400">Perbarui informasi dan peran pengguna.</p>
+                    </div>
+                </div>
+                <button @click="editUserModal = false" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form method="post" :action="'/tickets/system-admin/user/' + selectedUser.id + '/edit/'" class="space-y-4">
+                {% csrf_token %}
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Nama Depan</label>
+                        <input type="text" name="first_name" x-model="selectedUser.first_name" class="unfold-input w-full px-3 py-2 rounded-xl text-xs">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Nama Belakang</label>
+                        <input type="text" name="last_name" x-model="selectedUser.last_name" class="unfold-input w-full px-3 py-2 rounded-xl text-xs">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Email</label>
+                        <input type="email" name="email" x-model="selectedUser.email" class="unfold-input w-full px-3 py-2 rounded-xl text-xs">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Departemen</label>
+                        <input type="text" name="department" x-model="selectedUser.department" class="unfold-input w-full px-3 py-2 rounded-xl text-xs">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Reset Password (Opsional)</label>
+                        <input type="password" name="password" placeholder="Kosongkan jika tak diubah" class="unfold-input w-full px-3 py-2 rounded-xl text-xs">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Peran (Role)</label>
+                        <select name="role" x-model="selectedUser.role" class="unfold-input w-full px-3 py-2 rounded-xl text-xs font-semibold">
+                            {% for role_val, role_label in roles %}
+                                <option value="{{ role_val }}">{{ role_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" @click="editUserModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-teal px-5 py-2 rounded-xl text-xs font-bold shadow-2xs">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Delete User Confirmation -->
+    <div x-show="deleteUserModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div @click.outside="deleteUserModal = false" class="unfold-card w-full max-w-md p-6 space-y-4 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl text-center">
+            <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+
+            <div class="space-y-1">
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Konfirmasi Hapus User</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Apakah Anda yakin ingin menghapus akun <strong class="text-rose-600">@<span x-text="selectedUser.username"></span></strong>?</p>
+            </div>
+
+            <form method="post" :action="'/tickets/system-admin/user/' + selectedUser.id + '/delete/'" class="flex items-center justify-center gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                {% csrf_token %}
+                <button type="button" @click="deleteUserModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 shadow-2xs">
+                    Ya, Hapus User
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Edit Category -->
+    <div x-show="editCategoryModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div @click.outside="editCategoryModal = false" class="unfold-card w-full max-w-md p-6 space-y-4 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Edit Kategori Master</h3>
+                <button @click="editCategoryModal = false" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form method="post" :action="'/tickets/system-admin/category/' + selectedCategory.id + '/edit/'" class="space-y-4">
+                {% csrf_token %}
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Nama Kategori</label>
+                    <input type="text" name="name" x-model="selectedCategory.name" required class="unfold-input w-full px-3 py-2 rounded-xl text-xs">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Deskripsi</label>
+                    <textarea name="description" x-model="selectedCategory.description" rows="3" class="unfold-input w-full px-3 py-2 rounded-xl text-xs"></textarea>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="is_active" id="is_active_check" x-model="selectedCategory.is_active" class="rounded text-teal-600 focus:ring-teal-500">
+                    <label for="is_active_check" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Status Aktif</label>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" @click="editCategoryModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-teal px-5 py-2 rounded-xl text-xs font-bold shadow-2xs">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 5: Export Laporan Penilaian (General & Per-Karyawan) -->
+    <div x-show="exportReportModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div @click.outside="exportReportModal = false" class="unfold-card w-full max-w-md p-6 space-y-5 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Download Laporan Penilaian</h3>
+                        <p class="text-xs text-slate-400">Unduh data performa general atau per karyawan (CSV/Excel).</p>
+                    </div>
+                </div>
+                <button @click="exportReportModal = false" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form method="get" action="{% url 'export_report' %}" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Pilih Target Laporan Penilaian</label>
+                    <select name="user_id" class="unfold-input w-full px-3 py-2 rounded-xl text-xs font-semibold">
+                        <option value="">-- Laporan General Semua System --</option>
+                        {% for u in users %}
+                            <option value="{{ u.id }}">
+                                @{{ u.username }} ({{ u.get_full_name|default:u.username }}) - {{ u.profile.get_role_display|default:"Karyawan" }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Filter Status Tiket</label>
+                    <select name="status" class="unfold-input w-full px-3 py-2 rounded-xl text-xs font-semibold">
+                        <option value="">Semua Status</option>
+                        <option value="OPEN">Open (Dalam Antrean)</option>
+                        <option value="IN_PROGRESS">In Progress (Sedang Ditangani)</option>
+                        <option value="RESOLVED">Resolved (Tiket Selesai / Tuntas)</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" @click="exportReportModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-teal px-5 py-2 rounded-xl text-xs font-bold shadow-2xs flex items-center gap-1.5">
+                        <i data-lucide="download" class="w-4 h-4"></i> Download CSV Excel
+                    </button>
+                </div>
+            </form>
+    <!-- MODAL 6: Tambah Kategori Modal -->
+    <div x-show="addCategoryModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div @click.outside="addCategoryModal = false" class="unfold-card w-full max-w-md p-6 space-y-5 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Tambah Kategori Baru</h3>
+                        <p class="text-xs text-slate-400">Buat jenis kendala IT baru untuk pelaporan karyawan.</p>
+                    </div>
+                </div>
+                <button @click="addCategoryModal = false" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form method="post" action="{% url 'add_category' %}" class="space-y-4">
+                {% csrf_token %}
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Nama Kategori *</label>
+                    <input type="text" name="name" required class="unfold-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Contoh: Mobile App & VPN">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Deskripsi Ringkas</label>
+                    <textarea name="description" rows="3" class="unfold-input w-full px-3 py-2 rounded-xl text-xs" placeholder="Penjelasan mengenai jenis kendala ini..."></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" @click="addCategoryModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-teal px-5 py-2 rounded-xl text-xs font-bold shadow-2xs">
+                        Simpan Kategori
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
+
 {% endblock %}
+

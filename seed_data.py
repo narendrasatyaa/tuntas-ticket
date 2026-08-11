@@ -17,6 +17,7 @@ def seed():
         {"name": "Network & Wi-Fi", "description": "Masalah koneksi Wi-Fi kantor, kabel LAN, VPN, atau Internet lemot."},
         {"name": "Account & Access", "description": "Permintaan reset password, pembuatan email baru, atau hak akses drive."},
         {"name": "Facility & Utility", "description": "Perangkat ruang rapat, proyektor, kabel extension, atau AC."},
+        {"name": "Lainnya", "description": "Lainnya."},
     ]
 
     categories = {}
