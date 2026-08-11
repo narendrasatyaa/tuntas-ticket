@@ -1,14 +1,14 @@
-/* Zenith Dashboard Theme for Tuntas (Light & Dark Mode Support) */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+/* Tuntas Modern Dashboard Theme */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg-body: #f8fafc;
+  --bg-body: #f1f5f9;
   --bg-card: #ffffff;
   --bg-sidebar: #ffffff;
   --border-color: #e2e8f0;
   --text-primary: #0f172a;
   --text-secondary: #64748b;
-  --accent-primary: #0f766e;
+  --accent-teal: #0d9488;
 }
 
 html.dark {
@@ -18,7 +18,7 @@ html.dark {
   --border-color: #1e293b;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --accent-primary: #14b8a6;
+  --accent-teal: #14b8a6;
 }
 
 body {
@@ -26,40 +26,64 @@ body {
   background-color: var(--bg-body);
   color: var(--text-primary);
   min-height: 100vh;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Zenith Cards */
-.zenith-card {
+/* Cards with Crisp Shadow & Separation */
+.unfold-card, .zenith-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
-  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
 }
 
-.zenith-sidebar {
+.unfold-sidebar, .zenith-sidebar {
   background-color: var(--bg-sidebar);
   border-right: 1px solid var(--border-color);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
 }
 
-.zenith-header {
+.unfold-header, .zenith-header {
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border-color);
 }
 
-/* Input Fields */
-.zenith-input {
-  background-color: var(--bg-body) !important;
+/* Inputs */
+.unfold-input, .zenith-input {
+  background-color: var(--bg-card) !important;
   border: 1px solid var(--border-color) !important;
   color: var(--text-primary) !important;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
-.zenith-input:focus {
+.unfold-input:focus, .zenith-input:focus {
   border-color: #0d9488 !important;
-  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12) !important;
   outline: none !important;
+}
+
+/* Teal Solid Button */
+.btn-teal {
+  background-color: #0d9488 !important;
+  color: #ffffff !important;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-teal:hover {
+  background-color: #0f766e !important;
+}
+
+/* Soft Badges without harsh uppercase */
+.pill-teal {
+  background-color: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #ccfbf1;
+}
+
+html.dark .pill-teal {
+  background-color: rgba(13, 148, 136, 0.15);
+  color: #2dd4bf;
+  border: 1px solid rgba(13, 148, 136, 0.3);
 }
 
 /* Custom Scrollbar */
