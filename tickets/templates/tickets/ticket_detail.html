@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}[{{ ticket.ticket_id }}] {{ ticket.title }} - Tuntas Unfold Desk{% endblock %}
+{% block title %}[{{ ticket.ticket_id }}] {{ ticket.title }} - Tuntas Desk{% endblock %}
 {% block breadcrumb %}Detail Tiket {{ ticket.ticket_id }}{% endblock %}
 
 {% block content %}
 <div class="space-y-6 w-full max-w-full">
 
-    <!-- Unfold Header Bar -->
+    <!-- Header Bar -->
     <div class="unfold-card p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 flex-wrap">
             <a href="{% if user.is_staff %}{% url 'it_queue' %}{% else %}{% url 'my_tickets' %}{% endif %}" 
                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors flex items-center gap-1 shadow-2xs">
                 <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Kembali
@@ -16,6 +17,26 @@
             <span class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
                 {{ ticket.ticket_id }}
             </span>
+
+            <!-- SLA Target Badge -->
+            {% if ticket.due_date %}
+                {% if ticket.is_sla_breached %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+                        <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-500"></i>
+                        SLA Terlewat ({{ ticket.time_until_sla }})
+                    </span>
+                {% elif ticket.status == 'RESOLVED' or ticket.status == 'CLOSED' %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                        <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
+                        SLA Terpenuhi
+                    </span>
+                {% else %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                        <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-500"></i>
+                        Target SLA: {{ ticket.time_until_sla }}
+                    </span>
+                {% endif %}
+            {% endif %}
         </div>
 
         <div class="flex items-center gap-3">
@@ -28,10 +49,10 @@
                 Status: {{ ticket.get_status_display }}
             </span>
 
-            {% if user.is_staff or ticket.created_by == user %}
+            {% if user.is_staff or ticket.created_by == user and ticket.status != 'RESOLVED' and ticket.status != 'CLOSED' %}
                 <a href="{% url 'ticket_edit' ticket.ticket_id %}" 
                    class="px-3 py-1 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors flex items-center gap-1">
-                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit Tiket
+                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
                 </a>
             {% endif %}
 
@@ -51,6 +72,109 @@
         
         <!-- Left: Ticket Content & Discussion History (2 cols) -->
         <div class="lg:col-span-2 space-y-6">
+
+            <!-- Banner Verifikasi Penyelesaian untuk Pelapor (Jika status RESOLVED & Pelapor) -->
+            {% if ticket.status == 'RESOLVED' and ticket.created_by == user %}
+                <div class="p-6 rounded-3xl bg-gradient-to-br from-emerald-50 via-teal-50 to-white dark:from-emerald-950/50 dark:via-slate-900 dark:to-slate-900 border-2 border-emerald-300 dark:border-emerald-700 shadow-lg space-y-5">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2.5 rounded-2xl bg-emerald-500 text-white shadow-sm flex-shrink-0">
+                            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Kendala Anda Telah Diselesaikan oleh Tim IT!</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">Silakan periksa kembali apakah masalah komputer/perangkat Anda sudah tuntas, lalu berikan ulasan atau buka kembali jika kendala belum selesai.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <!-- Box 1: Berikan Rating & Tutup Tiket -->
+                        <div class="p-4 rounded-2xl bg-white dark:bg-slate-800/80 border border-emerald-200 dark:border-emerald-800 space-y-3">
+                            <h4 class="text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 uppercase tracking-wider">
+                                <i data-lucide="star" class="w-4 h-4 fill-emerald-500 text-emerald-500"></i> Masalah Sudah Tuntas?
+                            </h4>
+                            <form method="post" action="{% url 'submit_rating' ticket.ticket_id %}" class="space-y-3">
+                                {% csrf_token %}
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tingkat Kepuasan Penanganan:</label>
+                                    <select name="rating" class="unfold-input w-full px-3 py-2 rounded-xl text-xs font-bold">
+                                        <option value="5">5 Bintang (Sangat Puas)</option>
+                                        <option value="4">4 Bintang (Puas)</option>
+                                        <option value="3">3 Bintang (Cukup)</option>
+                                        <option value="2">2 Bintang (Kurang Puas)</option>
+                                        <option value="1">1 Bintang (Tidak Puas)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Ulasan / Masukan (Opsional):</label>
+                                    <textarea name="rating_feedback" rows="2" class="unfold-input w-full p-2.5 rounded-xl text-xs" placeholder="Penanganan cepat dan ramah..."></textarea>
+                                </div>
+                                <button type="submit" class="w-full py-2.5 px-3 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-colors flex items-center justify-center gap-1.5 shadow-xs">
+                                    <i data-lucide="check" class="w-4 h-4"></i> Konfirmasi & Tutup Tiket
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Box 2: Buka Kembali Tiket (Re-Open) -->
+                        <div class="p-4 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3">
+                            <h4 class="text-xs font-bold text-rose-700 dark:text-rose-400 flex items-center gap-1.5 uppercase tracking-wider">
+                                <i data-lucide="rotate-ccw" class="w-4 h-4 text-rose-500"></i> Masalah Belum Selesai?
+                            </h4>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400">Jika kendala masih terjadi, buka kembali tiket agar teknisi dapat menindaklanjuti.</p>
+                            <form method="post" action="{% url 'reopen_ticket' ticket.ticket_id %}" class="space-y-3">
+                                {% csrf_token %}
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Alasan Dibuka Kembali:</label>
+                                    <textarea name="reopen_reason" rows="3" required class="unfold-input w-full p-2.5 rounded-xl text-xs" placeholder="Jelaskan bagian mana yang masih bermasalah..."></textarea>
+                                </div>
+                                <button type="submit" class="w-full py-2.5 px-3 rounded-xl text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 border border-rose-200 dark:border-rose-800 transition-colors flex items-center justify-center gap-1.5">
+                                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Buka Kembali Tiket (Re-Open)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Solusi Resmi Fiksasi IT (Jika sudah diisi teknisi) -->
+            {% if ticket.resolution_note %}
+                <div class="p-5 rounded-2xl bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> Solusi & Tindakan Fiksasi Tim IT
+                        </span>
+                        {% if ticket.resolved_at %}
+                            <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">{{ ticket.resolved_at|date:"d M Y, H:i" }} WIB</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-xs sm:text-sm text-emerald-950 dark:text-emerald-100 leading-relaxed bg-white/70 dark:bg-slate-900/60 p-3.5 rounded-xl border border-emerald-200/60 dark:border-emerald-800/60 whitespace-pre-line">
+                        {{ ticket.resolution_note }}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Tampilan Penilaian CSAT (Jika sudah dinilai pelapor) -->
+            {% if ticket.rating %}
+                <div class="p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i> Penilaian Kepuasan Pelapor (CSAT)
+                        </span>
+                        <span class="text-xs font-extrabold text-amber-600 dark:text-amber-400 font-mono inline-flex items-center gap-1">
+                            <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i>
+                            <span>{{ ticket.rating }} / 5 Bintang</span>
+                        </span>
+                    </div>
+                    {% if ticket.rating_feedback %}
+                        <p class="text-xs text-amber-950 dark:text-amber-200 italic bg-white/70 dark:bg-slate-900/60 p-3 rounded-xl border border-amber-200/50">
+                            “{{ ticket.rating_feedback }}”
+                        </p>
+                    {% endif %}
+                    {% if ticket.rated_at %}
+                        <span class="text-[10px] text-slate-400 block text-right">Dinilai pada: {{ ticket.rated_at|date:"d M Y, H:i" }} WIB</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+
             <!-- Ticket Info Card -->
             <div class="unfold-card p-6 space-y-6">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 text-xs">
@@ -121,23 +245,29 @@
                 {% endif %}
 
                 <!-- Add Comment Form -->
-                <form method="post" action="{% url 'add_comment' ticket.ticket_id %}" class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-                    {% csrf_token %}
-                    <textarea name="comment" rows="3" required class="unfold-input w-full p-3 rounded-xl text-xs" placeholder="Tulis balasan atau catatan perkembangan..."></textarea>
-                    
-                    {% if user.is_staff %}
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" name="is_internal_note" id="is_internal_note" class="rounded text-amber-600 focus:ring-amber-500">
-                            <label for="is_internal_note" class="text-xs font-semibold text-amber-700 dark:text-amber-400">Tandai sebagai Catatan Rahasia Tim IT (Internal Note)</label>
-                        </div>
-                    {% endif %}
+                {% if ticket.status != 'CLOSED' %}
+                    <form method="post" action="{% url 'add_comment' ticket.ticket_id %}" class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                        {% csrf_token %}
+                        <textarea name="comment" rows="3" required class="unfold-input w-full p-3 rounded-xl text-xs" placeholder="Tulis balasan atau catatan perkembangan..."></textarea>
+                        
+                        {% if user.is_staff %}
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" name="is_internal_note" id="is_internal_note" class="rounded text-amber-600 focus:ring-amber-500">
+                                <label for="is_internal_note" class="text-xs font-semibold text-amber-700 dark:text-amber-400">Tandai sebagai Catatan Rahasia Tim IT (Internal Note)</label>
+                            </div>
+                        {% endif %}
 
-                    <div class="flex justify-end">
-                        <button type="submit" class="btn-teal px-5 py-2 rounded-xl text-xs font-bold shadow-2xs">
-                            Kirim Balasan
-                        </button>
+                        <div class="flex justify-end">
+                            <button type="submit" class="btn-teal px-5 py-2 rounded-xl text-xs font-bold shadow-2xs">
+                                Kirim Balasan
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-400 italic">
+                        Tiket ini telah resmi ditutup (Closed). Kolom diskusi telah dikunci.
                     </div>
-                </form>
+                {% endif %}
             </div>
         </div>
 
@@ -149,12 +279,6 @@
                     <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                         <i data-lucide="shield" class="w-4 h-4 text-amber-500"></i> Kontrol Fiksasi IT
                     </h3>
-
-                    {% if not ticket.assigned_to %}
-                        <a href="{% url 'assign_to_me' ticket.ticket_id %}" class="w-full btn-teal py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-2xs">
-                            <i data-lucide="user-plus" class="w-4 h-4"></i> Assign Tiket ke Saya
-                        </a>
-                    {% endif %}
 
                     <form method="post" action="{% url 'update_ticket_status' ticket.ticket_id %}" class="space-y-3">
                         {% csrf_token %}
@@ -168,19 +292,46 @@
                         </div>
 
                         <div class="space-y-1">
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300">Assign ke Teknisi / Staff IT</label>
-                            <select name="assigned_to" class="unfold-input w-full px-3 py-2 rounded-xl text-xs font-bold">
-                                <option value="">-- Belum Ditugaskan --</option>
-                                {% for tech in staff_users %}
-                                    <option value="{{ tech.id }}" {% if ticket.assigned_to == tech %}selected{% endif %}>
-                                        {{ tech.get_full_name|default:tech.username }} {% if tech == user %}(Saya / Assign Diri Sendiri){% endif %}
-                                    </option>
-                                {% endfor %}
-                            </select>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300">Catatan Solusi (Resolution Note)</label>
+                            <textarea name="resolution_note" rows="3" class="unfold-input w-full p-2.5 rounded-xl text-xs" placeholder="Tuliskan tindakan yang dilakukan untuk menyelesaikan kendala...">{{ ticket.resolution_note|default:'' }}</textarea>
+                            <p class="text-[10px] text-slate-400">Diperlukan saat status diubah menjadi Resolved.</p>
                         </div>
 
+                        <!-- HANYA TAMPIL JIKA IT LEAD ATAU ADMIN: ALOKASI TEKNISI -->
+                        {% if is_lead_or_admin %}
+                            <div class="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                <label class="block text-xs font-bold text-teal-700 dark:text-teal-300 flex items-center gap-1">
+                                    <i data-lucide="user-check" class="w-3.5 h-3.5"></i> Alokasikan Teknisi (Wewenang Lead)
+                                </label>
+                                <select name="assigned_to" class="unfold-input w-full px-3 py-2 rounded-xl text-xs font-bold">
+                                    <option value="">-- Belum Ditugaskan --</option>
+                                    {% for tech in staff_users %}
+                                        <option value="{{ tech.id }}" {% if ticket.assigned_to == tech %}selected{% endif %}>
+                                            {{ tech.get_full_name|default:tech.username }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% else %}
+                            <!-- Jika Teknisi, tampilkan status bahwa teknisi hanya menerima tugas dari Lead -->
+                            <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-[11px] text-slate-600 dark:text-slate-300 space-y-1 border border-slate-200 dark:border-slate-700">
+                                <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Penugasan dari IT Lead:</span>
+                                {% if ticket.assigned_to %}
+                                    <span class="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
+                                        <i data-lucide="user-check" class="w-3.5 h-3.5 text-teal-500"></i>
+                                        {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                                        {% if ticket.assigned_to == user %}<span class="px-1.5 py-0.2 rounded text-[10px] bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">Tugas Anda</span>{% endif %}
+                                    </span>
+                                {% else %}
+                                    <span class="text-amber-600 dark:text-amber-400 italic flex items-center gap-1 font-medium">
+                                        <i data-lucide="clock" class="w-3 h-3"></i> Menunggu Alokasi IT Lead
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
                         <button type="submit" class="w-full px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 transition-colors shadow-2xs">
-                            Update Status & Assignment
+                            {% if is_lead_or_admin %}Update Status & Penugasan{% else %}Update Status Fiksasi{% endif %}
                         </button>
                     </form>
                 </div>
@@ -202,7 +353,7 @@
                     </div>
 
                     <div class="flex justify-between items-center">
-                        <span class="text-slate-500">Teknisi Penanggung Jawab:</span>
+                        <span class="text-slate-500">Teknisi IT:</span>
                         <span class="font-bold text-slate-900 dark:text-white">{{ ticket.assigned_to.username|default:"Belum Ditugaskan" }}</span>
                     </div>
 
@@ -211,10 +362,29 @@
                         <span class="font-semibold text-slate-700 dark:text-slate-300">{{ ticket.created_at|date:"d M Y, H:i" }}</span>
                     </div>
 
+                    {% if ticket.due_date %}
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <span class="text-slate-500">Target Batas SLA:</span>
+                            <span class="font-semibold {% if ticket.is_sla_breached %}text-rose-600 font-bold{% else %}text-slate-700 dark:text-slate-300{% endif %}">
+                                {{ ticket.due_date|date:"d M, H:i" }} WIB
+                            </span>
+                        </div>
+                    {% endif %}
+
                     {% if ticket.resolved_at %}
                         <div class="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
                             <span class="text-emerald-600 font-bold">Waktu Selesai (Tuntas):</span>
                             <span class="font-bold text-emerald-600">{{ ticket.resolved_at|date:"d M Y, H:i" }}</span>
+                        </div>
+                    {% endif %}
+
+                    {% if ticket.rating %}
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <span class="text-amber-600 font-bold">Rating CSAT:</span>
+                            <span class="font-bold text-amber-500 inline-flex items-center gap-1">
+                                <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i>
+                                <span>{{ ticket.rating }} / 5</span>
+                            </span>
                         </div>
                     {% endif %}
                 </div>

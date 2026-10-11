@@ -141,36 +141,75 @@
                                 </td>
 
                                 <td class="py-4 px-4 text-slate-600 dark:text-slate-300">
-                                    <form method="post" action="{% url 'update_ticket_status' ticket.ticket_id %}" class="flex items-center gap-1.5">
-                                        {% csrf_token %}
-                                        <select name="assigned_to" onchange="this.form.submit()" title="Pilih Teknisi Penanggung Jawab" class="unfold-input px-2.5 py-1 rounded-xl text-[11px] font-bold">
-                                            <option value="">-- Belum Ditugaskan --</option>
-                                            {% for tech in staff_users %}
-                                                <option value="{{ tech.id }}" {% if ticket.assigned_to == tech %}selected{% endif %}>
-                                                    {{ tech.get_full_name|default:tech.username }} {% if tech == user %}(Saya){% endif %}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
-                                    </form>
+                                    {% if is_lead_or_admin %}
+                                        <form method="post" action="{% url 'update_ticket_status' ticket.ticket_id %}" class="flex items-center gap-1.5">
+                                            {% csrf_token %}
+                                            <select name="assigned_to" onchange="this.form.submit()" title="Alokasikan Teknisi (Wewenang IT Lead)" class="unfold-input px-2.5 py-1 rounded-xl text-[11px] font-bold text-teal-700 dark:text-teal-300">
+                                                <option value="">-- Belum Ditugaskan --</option>
+                                                {% for tech in staff_users %}
+                                                    <option value="{{ tech.id }}" {% if ticket.assigned_to == tech %}selected{% endif %}>
+                                                        {{ tech.get_full_name|default:tech.username }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </form>
+                                    {% else %}
+                                        {% if ticket.assigned_to %}
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-semibold {% if ticket.assigned_to == user %}text-teal-600 dark:text-teal-400 font-bold{% else %}text-slate-700 dark:text-slate-300{% endif %}">
+                                                <i data-lucide="user-check" class="w-3.5 h-3.5 {% if ticket.assigned_to == user %}text-teal-500{% else %}text-slate-400{% endif %}"></i>
+                                                {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                                                {% if ticket.assigned_to == user %}
+                                                    <span class="px-1.5 py-0.2 rounded text-[10px] bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">Saya</span>
+                                                {% endif %}
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 italic">
+                                                <i data-lucide="clock" class="w-3 h-3"></i> Menunggu Lead
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
                                 </td>
 
 
                                 <td class="py-4 px-4 text-slate-500 dark:text-slate-400 text-[11px]">
-                                    {{ ticket.created_at|date:"d M Y, H:i" }}
+                                    <div>{{ ticket.created_at|date:"d M Y, H:i" }}</div>
+                                    {% if ticket.due_date %}
+                                        {% if ticket.is_sla_breached %}
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-rose-600 font-bold mt-0.5">
+                                                <i data-lucide="alert-triangle" class="w-3 h-3"></i> Over SLA
+                                            </span>
+                                        {% elif ticket.status == 'RESOLVED' or ticket.status == 'CLOSED' %}
+                                            {% if ticket.rating %}
+                                                <span class="inline-flex items-center gap-1 text-[10px] text-amber-500 font-bold mt-0.5">
+                                                    <i data-lucide="star" class="w-3 h-3 fill-amber-400 text-amber-400"></i>
+                                                    <span>{{ ticket.rating }}.0</span>
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-bold mt-0.5">
+                                                    <i data-lucide="check" class="w-3 h-3"></i> Tuntas
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 font-medium mt-0.5">
+                                                <i data-lucide="clock" class="w-3 h-3"></i> {{ ticket.time_until_sla }}
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
                                 </td>
 
                                 <td class="py-4 px-6 text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        {% if not ticket.assigned_to %}
-                                            <a href="{% url 'assign_to_me' ticket.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-bold btn-teal shadow-2xs inline-flex items-center gap-1">
-                                                <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
-                                                Assign to Me
+                                        {% if ticket.assigned_to == user %}
+                                            <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-bold btn-teal shadow-2xs inline-flex items-center gap-1">
+                                                <i data-lucide="wrench" class="w-3.5 h-3.5"></i>
+                                                <span>Fiksasi</span>
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors inline-flex items-center gap-1">
+                                                <span>Lihat</span>
+                                                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                                             </a>
                                         {% endif %}
-                                        <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors inline-flex items-center gap-1">
-                                            <span>Lihat</span>
-                                            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-                                        </a>
                                     </div>
                                 </td>
                             </tr>
