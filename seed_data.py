@@ -5,6 +5,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from django.contrib.auth.models import User
+from django.utils import timezone
 from tickets.models import Category, Ticket, TicketComment, UserProfile
 
 def seed():
@@ -32,7 +33,7 @@ def seed():
 
     # A. ADMIN (Superuser - Kelola Semua System)
     admin_user, _ = User.objects.get_or_create(username="admin", defaults={
-        "email": "admin@tuntas.id",
+        "email": "admin@tuntas.com",
         "first_name": "System",
         "last_name": "Administrator",
         "is_staff": True,
@@ -46,7 +47,7 @@ def seed():
 
     # B. IT LEAD / SUPERVISOR (Supervisor Support - Monitor SLA & Assign Team)
     lead_user, _ = User.objects.get_or_create(username="lead", defaults={
-        "email": "lead@tuntas.id",
+        "email": "lead@tuntas.com",
         "first_name": "Hendky",
         "last_name": "IT Supervisor",
         "is_staff": True,
@@ -60,7 +61,7 @@ def seed():
 
     # C. TECHNICIAN (Teknisi Support - Fokus Fiksasi Kendala)
     tech_user, _ = User.objects.get_or_create(username="teknisi", defaults={
-        "email": "teknisi@tuntas.id",
+        "email": "teknisi@tuntas.com",
         "first_name": "Rizky",
         "last_name": "Support Fiksasi",
         "is_staff": True,
@@ -74,7 +75,7 @@ def seed():
 
     # D. REQUESTER (Karyawan - Fokus Aduan)
     budi_user, _ = User.objects.get_or_create(username="budi", defaults={
-        "email": "budi@tuntas.id",
+        "email": "budi@tuntas.com",
         "first_name": "Budi",
         "last_name": "Santoso",
         "is_staff": False,
@@ -127,6 +128,21 @@ def seed():
             "priority": Ticket.Priority.MEDIUM,
             "status": Ticket.Status.OPEN,
             "created_by": budi_user
+        }
+    )
+
+    # 3. Tiket Sample 3: Status RESOLVED (Siap diberi penilaian atau re-open oleh Karyawan)
+    t3, created3 = Ticket.objects.get_or_create(
+        title="Permintaan Akun Email Baru untuk Staff Magang HR",
+        defaults={
+            "description": "Mohon dibuatkan akun Google Workspace baru untuk anak magang divisi HR: magang.hr@tuntas.com.",
+            "category": categories["Account & Access"],
+            "priority": Ticket.Priority.MEDIUM,
+            "status": Ticket.Status.RESOLVED,
+            "created_by": budi_user,
+            "assigned_to": tech_user,
+            "resolved_at": timezone.now(),
+            "resolution_note": "Akun email magang.hr@tuntas.com telah dibuat dan kredensial sementara telah dikirimkan ke email PIC HR."
         }
     )
 

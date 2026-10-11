@@ -16,12 +16,12 @@
     searchUser: '' 
 }">
 
-    <!-- Header Banner -->
+    <!-- header banner -->
     <div class="unfold-card p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 w-full">
         <div class="space-y-1">
             <div class="flex items-center gap-2">
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-                    Superuser Control
+                    {% if user.is_superuser or user.profile.role == 'ADMIN' %}Superuser Control{% else %}Lead & Supervisor Control{% endif %}
                 </span>
             </div>
             <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Kelola Master Data & Peran Pengguna</h1>
@@ -43,7 +43,7 @@
     </div>
 
 
-    <!-- Master Stat Cards Grid -->
+    <!-- master stat cards grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
         <div class="unfold-card p-4 flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0 font-bold">
@@ -90,7 +90,7 @@
         </div>
     </div>
 
-    <!-- Section: User CRUD Table -->
+    <!-- section: user crud table -->
     <div class="unfold-card overflow-hidden w-full">
         <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -176,13 +176,13 @@
 
                             <td class="py-3.5 px-6 text-right">
                                 <div class="inline-flex items-center gap-1.5">
-                                    <!-- Edit User Button -->
+                                    <!-- edit user button -->
                                     <button @click="selectedUser = { id: {{ u.id }}, username: '{{ u.username }}', first_name: '{{ u.first_name }}', last_name: '{{ u.last_name }}', email: '{{ u.email }}', department: '{{ u.profile.department }}', role: '{{ u.profile.role }}' }; editUserModal = true"
                                             class="p-1.5 rounded-lg text-slate-500 hover:text-teal-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Edit User">
                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </button>
 
-                                    <!-- Delete User Button -->
+                                    <!-- delete user button -->
                                     {% if u != user %}
                                         <button @click="selectedUser = { id: {{ u.id }}, username: '{{ u.username }}' }; deleteUserModal = true"
                                                 class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors" title="Hapus User">
@@ -198,7 +198,7 @@
         </div>
     </div>
 
-    <!-- Section: Ticket Assignment Control Table (Admin Penugasan Tiket) -->
+    <!-- section: ticket assignment control table (admin penugasan tiket) -->
     <div class="unfold-card overflow-hidden w-full">
         <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div>
@@ -277,10 +277,10 @@
         </div>
     </div>
 
-    <!-- Section: Category CRUD Grid -->
+    <!-- section: category crud grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
 
-        <!-- Category Table (2 cols) -->
+        <!-- category table (2 cols) -->
         <div class="lg:col-span-2 unfold-card overflow-hidden">
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
@@ -322,12 +322,12 @@
                                 </td>
                                 <td class="py-3.5 px-5 text-right">
                                     <div class="inline-flex items-center gap-1.5">
-                                        <!-- Edit Category -->
+                                        <!-- edit category -->
                                         <button @click="selectedCategory = { id: {{ cat.id }}, name: '{{ cat.name }}', description: '{{ cat.description }}', is_active: {% if cat.is_active %}true{% else %}false{% endif %} }; editCategoryModal = true"
                                                 class="p-1.5 rounded-lg text-slate-500 hover:text-teal-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Edit Kategori">
                                             <i data-lucide="edit-3" class="w-4 h-4"></i>
                                         </button>
-                                        <!-- Delete Category -->
+                                        <!-- delete category -->
                                         <form method="post" :action="'/tickets/system-admin/category/' + {{ cat.id }} + '/delete/'" class="inline" onsubmit="return confirm('Hapus kategori {{ cat.name }}?')">
                                             {% csrf_token %}
                                             <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors" title="Hapus Kategori">
@@ -343,7 +343,7 @@
             </div>
         </div>
 
-        <!-- Inline Add Category Form Card (1 col) -->
+        <!-- inline add category form card (1 col) -->
         <div class="unfold-card p-5 space-y-4">
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -371,7 +371,7 @@
         </div>
     </div>
 
-    <!-- MODAL 1: Add User -->
+    <!-- modal 1: add user -->
     <div x-show="addUserModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
         <div @click.outside="addUserModal = false" class="unfold-card w-full max-w-lg p-6 space-y-5 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -398,7 +398,7 @@
                     </div>
                     <div class="space-y-1">
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Email</label>
-                        <input type="email" name="email" class="unfold-input w-full px-3 py-2 rounded-xl text-xs" placeholder="andi@kantor.com">
+                        <input type="email" name="email" class="unfold-input w-full px-3 py-2 rounded-xl text-xs" placeholder="andi@tuntas.com">
                     </div>
                 </div>
 
@@ -428,7 +428,9 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Pilih Peran (Role) *</label>
                     <select name="role" class="unfold-input w-full px-3 py-2 rounded-xl text-xs font-semibold">
                         {% for role_val, role_label in roles %}
-                            <option value="{{ role_val }}">{{ role_label }}</option>
+                            {% if user.is_superuser or user.profile.role == 'ADMIN' or role_val == 'REQUESTER' or role_val == 'TECHNICIAN' %}
+                                <option value="{{ role_val }}">{{ role_label }}</option>
+                            {% endif %}
                         {% endfor %}
                     </select>
                 </div>
@@ -445,7 +447,7 @@
         </div>
     </div>
 
-    <!-- MODAL 2: Edit User -->
+    <!-- modal 2: edit user -->
     <div x-show="editUserModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
         <div @click.outside="editUserModal = false" class="unfold-card w-full max-w-lg p-6 space-y-5 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -514,7 +516,7 @@
         </div>
     </div>
 
-    <!-- MODAL 3: Delete User Confirmation -->
+    <!-- modal 3: delete user confirmation -->
     <div x-show="deleteUserModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
         <div @click.outside="deleteUserModal = false" class="unfold-card w-full max-w-md p-6 space-y-4 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl text-center">
             <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
@@ -538,7 +540,7 @@
         </div>
     </div>
 
-    <!-- MODAL 4: Edit Category -->
+    <!-- modal 4: edit category -->
     <div x-show="editCategoryModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
         <div @click.outside="editCategoryModal = false" class="unfold-card w-full max-w-md p-6 space-y-4 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -577,7 +579,7 @@
         </div>
     </div>
 
-    <!-- MODAL 5: Export Laporan Penilaian (General & Per-Karyawan) -->
+    <!-- modal 5: export laporan penilaian (general & per-karyawan) -->
     <div x-show="exportReportModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
         <div @click.outside="exportReportModal = false" class="unfold-card w-full max-w-md p-6 space-y-5 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -627,7 +629,7 @@
                     </button>
                 </div>
             </form>
-    <!-- MODAL 6: Tambah Kategori Modal -->
+    <!-- modal 6: tambah kategori modal -->
     <div x-show="addCategoryModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
         <div @click.outside="addCategoryModal = false" class="unfold-card w-full max-w-md p-6 space-y-5 bg-white dark:bg-[#111827] shadow-2xl relative rounded-3xl">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">

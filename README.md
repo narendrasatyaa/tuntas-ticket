@@ -25,15 +25,17 @@
 ## Fitur Utama
 
 - **Multi-Role Access Control (RBAC)**:
-  - **Administrator**: Kontrol penuh pengguna, kategori tiket, pengaturan sistem, switch role instan, dan unduh laporan kinerja.
-  - **IT Lead / Supervisor**: Monitoring antrean tiket keseluruhan, alokasi penugasan teknisi, dan pantauan SLA.
-  - **Staff IT / Teknisi**: Dashboard antrean personal **"Tugas Saya"**, update progres pengerjaan tiket, catatan internal, dan input solusi.
-  - **Karyawan / Requester**: Pengajuan tiket kendala dengan lampiran, pelacakan status tiket, dan penilaian kepuasan (*Rating & Review*).
-- **Switch Role Instan (Admin Sandbox)**: Kemudahan berpindah sudut pandang role langsungari UI tanpa perlu logout-login berulang.
-- **Laporan & Export Penilaian**: Unduh rekap penilaian performa tiket dan kepuasan pengguna dalam format CSV/Excel.
-- **Prioritas & SLA Visual**: Penanda prioritas (Urgent, High, Medium, Low) dengan indikator warna interaktif.
-- **Lampiran Media**: Pengguna dapat menyertakan foto tangkapan layar atau dokumen bukti kendala.
-- **Desain UI Modern**: Tampilan bersih, responsif, dan interaktif didukung CSS modern (*ReactBits styled components*).
+  - **Administrator**: Kontrol penuh master pengguna, kategori tiket, pengaturan sistem, switch role instan, dan unduh laporan kinerja.
+  - **IT Lead / Supervisor**: Monitoring antrean tiket keseluruhan, alokasi penugasan teknisi (*Assign to*), dan pantauan SLA tim.
+  - **Staff IT / Teknisi**: Menerima penugasan tugas dari Lead, dashboard antrean personal **"Tugas Saya"**, update progres fiksasi tiket, catatan internal IT, dan input solusi perbaikan.
+  - **Karyawan / Requester**: Fokus pelaporan aduan kendala (*Fokus Aduan*), pelacakan progres tiket sendiri, konfirmasi selesai, re-open tiket, dan penilaian kepuasan (*Rating & Review*).
+- **Penilaian Kepuasan Pelapor (CSAT 1-5 Bintang)**: Pelapor dapat memberikan rating bintang serta ulasan masukan saat tiket selesai ditangani.
+- **Otomatisasi SLA Due Date & Indikator Keterlambatan**: Batas waktu penyelesaian dihitung otomatis berdasarkan prioritas (Urgent: 4j, High: 12j, Medium: 24j, Low: 48j) dengan visual peringatan keterlambatan (*Over SLA*).
+- **Siklus Re-Open & Konfirmasi Selesai**: Karyawan memverifikasi hasil penanganan; tiket dapat dibuka kembali jika kendala belum tuntas, atau ditutup permanen.
+- **Catatan Solusi Resmi Teknisi (*Resolution Note*)**: Dokumentasi tindakan perbaikan teknis yang dilakukan tim IT tersimpan rapi pada tiket.
+- **Switch Role Instan (Admin Sandbox)**: Kemudahan berpindah sudut pandang antar-role langsung dari navbar tanpa logout-login berulang.
+- **Laporan & Export Penilaian Komprehensif**: Unduh rekap penilaian performa tiket, kepatuhan SLA, durasi fiksasi, dan skor CSAT dalam format CSV/Excel.
+- **Desain UI Modern**: Tampilan bersih, responsif, dan interaktif dengan mode gelap/terang didukung CSS modern (*ReactBits styled components*).
 
 ---
 
@@ -46,7 +48,7 @@
 
 ---
 
-## anduan Instalasi & Menjalankan Lokal
+## Panduan Instalasi & Menjalankan Lokal
 
 ### 1. Clone Repositori
 ```bash
@@ -104,7 +106,7 @@ Setelah menjalankan `python3 seed_data.py`, Anda dapat login menggunakan akun be
 
 ---
 
-## 📁 Struktur Direktori
+## Struktur Direktori
 
 ```text
 ├── config/                 # Konfigurasi project Django (settings, urls, wsgi)
