@@ -1,104 +1,237 @@
 {% extends 'base.html' %}
 
-{% block title %}Tiket Saya - Tuntas IT Desk{% endblock %}
-{% block breadcrumb %}Overview Tiket Saya{% endblock %}
-{% block page_title %}Tiket Aduan Saya{% endblock %}
+{% block title %}Dashboard Overview - Tuntas IT Desk{% endblock %}
+{% block breadcrumb %}Overview & Analytics{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-6 w-full max-w-full">
 
-    <!-- Metric Strip Cards -->
-    <div class="synthex-card p-6 grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-slate-200">
-        <!-- Metric 1 -->
-        <div class="space-y-1 pr-4">
-            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Total Tiket Saya</span>
-                <i data-lucide="ticket" class="w-4 h-4 text-teal-600"></i>
+    <!-- Top Header Banner & Filter Tabs Bar -->
+    <div class="unfold-card p-5 md:p-6 space-y-4">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                        {% if user_role == 'ADMIN' %}Superuser Overview{% elif user_role == 'IT_LEAD' %}Supervisor SLA{% elif user_role == 'TECHNICIAN' %}Support Desk{% else %}Helpdesk Karyawan{% endif %}
+                    </span>
+                </div>
+                <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                    {% if user_role == 'REQUESTER' %}Overview Tiket Saya
+                    {% elif user_role == 'TECHNICIAN' %}Dashboard Penanganan Support
+                    {% elif user_role == 'IT_LEAD' %}Dashboard Supervisor SLA Tim
+                    {% else %}Dashboard System Administrator{% endif %}
+                </h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    Selamat datang kembali, <strong class="text-slate-800 dark:text-slate-200">{{ user.get_full_name|default:user.username }}</strong>. 
+                    {% if user_role == 'REQUESTER' %}Pantau progres penyelesaian aduan IT kantor Anda di bawah ini.
+                    {% elif user_role == 'TECHNICIAN' %}Kelola antrean fiksasi kendala teknis yang ditugaskan ke Anda.
+                    {% elif user_role == 'IT_LEAD' %}Monitor pencapaian SLA dan performa penanganan tim IT Support.
+                    {% else %}Ringkasan global performa sistem, akun terdaftar, dan statistik tiket Tuntas.{% endif %}
+                </p>
             </div>
-            <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-extrabold text-slate-900">{{ tickets|length }}</span>
-                <span class="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">Terdaftar</span>
+
+            <div class="flex items-center gap-3">
+                <a href="{% url 'ticket_create' %}" class="btn-teal px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Buat Tiket Aduan
+                </a>
             </div>
         </div>
 
-        <!-- Metric 2 -->
-        <div class="space-y-1 pt-4 md:pt-0 md:px-4">
-            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Status Open</span>
-                <i data-lucide="alert-circle" class="w-4 h-4 text-rose-500"></i>
-            </div>
-            <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-extrabold text-slate-900">
-                    {% for t in tickets %}{% if t.status == 'OPEN' %}{{ forloop.counter }}{% endif %}{% empty %}0{% endfor %}
+        <!-- Filter Tabs Bar -->
+        <div class="flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/80 pt-3 text-xs flex-wrap">
+            <a href="{% url 'my_tickets' %}" 
+               class="px-3.5 py-1.5 rounded-lg font-bold transition-all {% if not request.GET.status and not request.GET.assigned %}bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs{% else %}text-slate-500 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                {% if user_role == 'REQUESTER' %}Semua Aduan Saya{% elif user_role == 'TECHNICIAN' %}Tugas Saya{% else %}Semua Tiket{% endif %}
+            </a>
+
+            <!-- Tab "Tugas Saya" - HANYA TAMPIL UNTUK TEKNISI IT -->
+            {% if user_role == 'TECHNICIAN' %}
+                <a href="{% url 'my_tickets' %}?assigned=all" 
+                   class="px-3.5 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 {% if request.GET.assigned == 'all' %}bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white{% else %}text-slate-500 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                    <i data-lucide="layers" class="w-3.5 h-3.5 text-teal-600"></i>
+                    <span>Semua Antrean</span>
+                </a>
+            {% endif %}
+
+
+            <a href="{% url 'my_tickets' %}?status=OPEN" 
+               class="px-3.5 py-1.5 rounded-lg font-bold transition-all {% if request.GET.status == 'OPEN' %}bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 shadow-2xs{% else %}text-slate-500 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                Open (Antrean)
+            </a>
+            <a href="{% url 'my_tickets' %}?status=IN_PROGRESS" 
+               class="px-3.5 py-1.5 rounded-lg font-bold transition-all {% if request.GET.status == 'IN_PROGRESS' %}bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 shadow-2xs{% else %}text-slate-500 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                In Progress
+            </a>
+            <a href="{% url 'my_tickets' %}?status=RESOLVED" 
+               class="px-3.5 py-1.5 rounded-lg font-bold transition-all {% if request.GET.status == 'RESOLVED' %}bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 shadow-2xs{% else %}text-slate-500 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                Resolved (Tuntas)
+            </a>
+        </div>
+
+    </div>
+
+    <!-- 3 Stat Metric Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Stat Card 1 -->
+        <div class="unfold-card p-6 space-y-4 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    {% if user_role == 'REQUESTER' %}Total Tiket Saya
+                    {% elif user_role == 'TECHNICIAN' %}Tiket Tugas Saya
+                    {% elif user_role == 'IT_LEAD' %}Total Tiket Tim IT
+                    {% else %}Total Seluruh Tiket{% endif %}
                 </span>
-                <span class="text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">Antrean IT</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    7 hari terakhir
+                </span>
+            </div>
+            <div>
+                <span class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ stat_total }} Tiket</span>
+                <div class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-2">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    <span>+2.13% perkembangan dari minggu lalu</span>
+                </div>
             </div>
         </div>
 
-        <!-- Metric 3 -->
-        <div class="space-y-1 pt-4 md:pt-0 md:px-4">
-            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>In Progress</span>
-                <i data-lucide="clock" class="w-4 h-4 text-amber-500"></i>
-            </div>
-            <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-extrabold text-slate-900">
-                    {% for t in tickets %}{% if t.status == 'IN_PROGRESS' %}{{ forloop.counter }}{% endif %}{% empty %}0{% endfor %}
+        <!-- Stat Card 2 -->
+        <div class="unfold-card p-6 space-y-4 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    {% if user_role == 'REQUESTER' %}Dalam Antrean (Open)
+                    {% elif user_role == 'TECHNICIAN' %}Antrean Belum Klaim
+                    {% elif user_role == 'IT_LEAD' %}Antrean Open (Unassigned)
+                    {% else %}Tiket Membutuhkan Respon{% endif %}
                 </span>
-                <span class="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">Diproses</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    7 hari terakhir
+                </span>
+            </div>
+            <div>
+                <span class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ stat_open }} Tiket</span>
+                <div class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-2">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    <span>+6.49% perkembangan dari minggu lalu</span>
+                </div>
             </div>
         </div>
 
-        <!-- Metric 4 -->
-        <div class="space-y-1 pt-4 md:pt-0 md:pl-4">
-            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Selesai (Resolved)</span>
-                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>
-            </div>
-            <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-extrabold text-slate-900">
-                    {% for t in tickets %}{% if t.status == 'RESOLVED' %}{{ forloop.counter }}{% endif %}{% empty %}0{% endfor %}
+        <!-- Stat Card 3 -->
+        <div class="unfold-card p-6 space-y-4 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    {% if user_role == 'REQUESTER' %}Tiket Selesai (Resolved)
+                    {% elif user_role == 'TECHNICIAN' %}Fiksasi Berhasil
+                    {% elif user_role == 'IT_LEAD' %}Target SLA Selesai
+                    {% else %}Master Kategori Active{% endif %}
                 </span>
-                <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Tuntas</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    7 hari terakhir
+                </span>
+            </div>
+            <div>
+                <span class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    {% if user_role == 'ADMIN' %}{{ total_categories_count }} Kategori{% else %}{{ stat_resolved }} Tiket{% endif %}
+                </span>
+                <div class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-2">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    <span>+2.87% perkembangan dari minggu lalu</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Table Container Card -->
-    <div class="synthex-card overflow-hidden">
-        <!-- Filter Controls -->
-        <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50">
-            <div class="flex items-center gap-2 bg-slate-200/70 p-1 rounded-xl">
-                <a href="{% url 'my_tickets' %}" 
-                   class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all {% if not request.GET.status %}bg-white text-slate-900 shadow-xs{% else %}text-slate-500 hover:text-slate-800{% endif %}">
-                    Semua
-                </a>
-                <a href="{% url 'my_tickets' %}?status=OPEN" 
-                   class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all {% if request.GET.status == 'OPEN' %}bg-white text-rose-600 shadow-xs{% else %}text-slate-500 hover:text-slate-800{% endif %}">
-                    Open
-                </a>
-                <a href="{% url 'my_tickets' %}?status=IN_PROGRESS" 
-                   class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all {% if request.GET.status == 'IN_PROGRESS' %}bg-white text-amber-600 shadow-xs{% else %}text-slate-500 hover:text-slate-800{% endif %}">
-                    In Progress
-                </a>
-                <a href="{% url 'my_tickets' %}?status=RESOLVED" 
-                   class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all {% if request.GET.status == 'RESOLVED' %}bg-white text-emerald-600 shadow-xs{% else %}text-slate-500 hover:text-slate-800{% endif %}">
-                    Resolved
-                </a>
+    <!-- Analytics Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Line Chart (2 cols) -->
+        <div class="lg:col-span-2 unfold-card p-6 space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">
+                        {% if user_role == 'REQUESTER' %}Riwayat Tren Aduan Saya
+                        {% elif user_role == 'TECHNICIAN' %}Statistik Penanganan Fiksasi Saya
+                        {% elif user_role == 'IT_LEAD' %}Performa & SLA Penanganan Tim IT
+                        {% else %}Statistik Global Penanganan Tiket Sistem{% endif %}
+                    </h3>
+                    <p class="text-xs text-slate-400">Grafik jumlah tiket masuk dan penyelesaian harian</p>
+                </div>
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-semibold">
+                    <button class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs">7d</button>
+                    <button class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-700">30d</button>
+                </div>
             </div>
 
-            <a href="{% url 'ticket_create' %}" class="btn-teal px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
-                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Buat Aduan Baru
-            </a>
+            <div class="h-64 relative">
+                <canvas id="ticketsChart"></canvas>
+            </div>
         </div>
 
-        <!-- Table View -->
+        <!-- Right Donut Chart (1 col) -->
+        <div class="unfold-card p-6 space-y-6">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-4">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Persentase Kategori Tiket</h3>
+                <p class="text-xs text-slate-400">Distribusi jenis kendala IT</p>
+            </div>
+
+            <div class="flex items-center justify-center py-2 relative">
+                <div class="w-40 h-40 relative">
+                    <canvas id="categoryDonutChart"></canvas>
+                </div>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between items-center">
+                    <span class="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                        <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span> Hardware
+                    </span>
+                    <span class="font-bold text-slate-900 dark:text-white">45%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                        <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> Network & Wi-Fi
+                    </span>
+                    <span class="font-bold text-slate-900 dark:text-white">30%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Software
+                    </span>
+                    <span class="font-bold text-slate-900 dark:text-white">15%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                        <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Account & Access
+                    </span>
+                    <span class="font-bold text-slate-900 dark:text-white">10%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="unfold-card overflow-hidden w-full">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-sm font-bold text-slate-900 dark:text-white">
+                    {% if user_role == 'REQUESTER' %}Daftar Tiket Aduan Saya
+                    {% elif user_role == 'TECHNICIAN' %}Daftar Tiket Penanganan Saya
+                    {% elif user_role == 'IT_LEAD' %}Daftar Seluruh Tiket Tim IT
+                    {% else %}Master Daftar Tiket System{% endif %}
+                </h2>
+                <p class="text-xs text-slate-400">Daftar lengkap transaksi tiket IT dalam sistem.</p>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400 font-medium">Total: <strong>{{ tickets|length }} Tiket</strong></span>
+            </div>
+        </div>
+
         {% if tickets %}
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto w-full">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="border-b border-slate-200 text-[11px] uppercase font-bold text-slate-400 bg-slate-50/80 tracking-wider">
-                            <th class="py-3.5 px-6">Judul Tiket & ID</th>
+                        <tr class="border-b border-slate-100 dark:border-slate-800 text-[11px] uppercase font-bold text-slate-400 bg-slate-50/60 dark:bg-slate-800/40 tracking-wider">
+                            <th class="py-3.5 px-6">ID & Judul Tiket</th>
                             <th class="py-3.5 px-4">Kategori</th>
                             <th class="py-3.5 px-4">Prioritas</th>
                             <th class="py-3.5 px-4">Status</th>
@@ -107,20 +240,13 @@
                             <th class="py-3.5 px-6 text-right">Detail</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-xs font-medium">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium">
                         {% for ticket in tickets %}
-                            <tr class="hover:bg-slate-50 transition-colors group">
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                                 <td class="py-4 px-6">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs flex-shrink-0
-                                            {% if ticket.priority == 'URGENT' %}bg-rose-600
-                                            {% elif ticket.priority == 'HIGH' %}bg-rose-500
-                                            {% elif ticket.priority == 'MEDIUM' %}bg-amber-500
-                                            {% else %}bg-emerald-600{% endif %}">
-                                            {{ ticket.title|slice:":1"|upper }}
-                                        </div>
                                         <div class="space-y-0.5">
-                                            <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="font-bold text-slate-900 group-hover:text-teal-700 transition-colors block line-clamp-1">
+                                            <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors block line-clamp-1">
                                                 {{ ticket.title }}
                                             </a>
                                             <span class="text-[11px] font-mono text-slate-400 font-semibold">{{ ticket.ticket_id }}</span>
@@ -128,8 +254,8 @@
                                     </div>
                                 </td>
 
-                                <td class="py-4 px-4 text-slate-600">
-                                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-700">
+                                <td class="py-4 px-4 text-slate-600 dark:text-slate-300">
+                                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold">
                                         {{ ticket.category.name }}
                                     </span>
                                 </td>
@@ -155,10 +281,10 @@
                                     </span>
                                 </td>
 
-                                <td class="py-4 px-4 text-slate-600">
+                                <td class="py-4 px-4 text-slate-600 dark:text-slate-300">
                                     {% if ticket.assigned_to %}
-                                        <span class="font-semibold text-slate-700 flex items-center gap-1">
-                                            <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                        <span class="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+                                            <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-500"></i>
                                             {{ ticket.assigned_to.username }}
                                         </span>
                                     {% else %}
@@ -166,12 +292,34 @@
                                     {% endif %}
                                 </td>
 
-                                <td class="py-4 px-4 text-slate-500 text-[11px]">
-                                    {{ ticket.created_at|date:"d M Y, H:i" }}
+                                <td class="py-4 px-4 text-slate-500 dark:text-slate-400 text-[11px]">
+                                    <div>{{ ticket.created_at|date:"d M Y, H:i" }}</div>
+                                    {% if ticket.due_date %}
+                                        {% if ticket.is_sla_breached %}
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-rose-600 font-bold mt-0.5">
+                                                <i data-lucide="alert-triangle" class="w-3 h-3"></i> Over SLA
+                                            </span>
+                                        {% elif ticket.status == 'RESOLVED' or ticket.status == 'CLOSED' %}
+                                            {% if ticket.rating %}
+                                                <span class="inline-flex items-center gap-1 text-[10px] text-amber-500 font-bold mt-0.5">
+                                                    <i data-lucide="star" class="w-3 h-3 fill-amber-400 text-amber-400"></i>
+                                                    <span>{{ ticket.rating }}.0</span>
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-bold mt-0.5">
+                                                    <i data-lucide="check" class="w-3 h-3"></i> Tuntas
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 font-medium mt-0.5">
+                                                <i data-lucide="clock" class="w-3 h-3"></i> {{ ticket.time_until_sla }}
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
                                 </td>
 
                                 <td class="py-4 px-6 text-right">
-                                    <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors inline-flex items-center gap-1">
+                                    <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors inline-flex items-center gap-1">
                                         <span>Lihat</span>
                                         <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                                     </a>
@@ -181,28 +329,74 @@
                     </tbody>
                 </table>
             </div>
-
-            {% if is_paginated %}
-                <div class="p-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
-                    <div>Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}</div>
-                    <div class="flex items-center gap-2">
-                        {% if page_obj.has_previous %}
-                            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-semibold">Sebelumnya</a>
-                        {% endif %}
-                        {% if page_obj.has_next %}
-                            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-semibold">Selanjutnya</a>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
-
         {% else %}
             <div class="p-12 text-center space-y-3">
                 <i data-lucide="inbox" class="w-10 h-10 text-slate-300 mx-auto"></i>
-                <h3 class="text-sm font-bold text-slate-800">Belum Ada Tiket Aduan</h3>
+                <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">Belum Ada Tiket Aduan</h3>
                 <p class="text-xs text-slate-400">Silakan buat tiket baru jika mengalami masalah IT kantor.</p>
             </div>
         {% endif %}
     </div>
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctxLine = document.getElementById('ticketsChart').getContext('2d');
+        new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Tiket Masuk',
+                        data: [12, 19, 15, 25, 22, 30, 28],
+                        borderColor: '#0d9488',
+                        backgroundColor: 'rgba(13, 148, 136, 0.08)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Tiket Selesai',
+                        data: [10, 15, 12, 22, 20, 28, 26],
+                        borderColor: '#0284c7',
+                        backgroundColor: 'transparent',
+                        borderDash: [5, 5],
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: true, position: 'top' } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { color: 'rgba(226, 232, 240, 0.4)' } }
+                }
+            }
+        });
+
+        const ctxDonut = document.getElementById('categoryDonutChart').getContext('2d');
+        new Chart(ctxDonut, {
+            type: 'doughnut',
+            data: {
+                labels: ['Hardware', 'Network', 'Software', 'Account'],
+                datasets: [{
+                    data: [45, 30, 15, 10],
+                    backgroundColor: ['#0d9488', '#0284c7', '#f59e0b', '#94a3b8'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: { legend: { display: false } }
+            }
+        });
+    });
+</script>
 {% endblock %}

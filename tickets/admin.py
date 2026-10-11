@@ -1,7 +1,15 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
-from .models import Category, Ticket, TicketComment
+from .models import Category, Ticket, TicketComment, UserProfile
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'role', 'department')
+    list_filter = ('role', 'department')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'department')
+
 
 
 @admin.register(Category)

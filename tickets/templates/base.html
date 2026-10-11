@@ -1,15 +1,19 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Tuntas - IT Ticketing System{% endblock %}</title>
+    <title>{% block title %}Tuntas - IT Helpdesk Dashboard{% endblock %}</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo-tuntas.png' %}">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             colors: {
@@ -29,140 +33,293 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Custom Friendly Aesthetic CSS -->
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/reactbits.css' %}">
+
+    <script>
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-[#f8fafc] text-slate-800 min-h-screen flex antialiased">
+<body class="bg-[#f1f5f9] dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 min-h-screen flex antialiased" x-data="{ sidebarOpen: true }">
 
-    <!-- Left Vertical Icon Sidebar -->
-    <aside class="w-16 sm:w-20 bg-white border-r border-slate-200 flex flex-col items-center py-6 justify-between flex-shrink-0 z-30 sticky top-0 h-screen shadow-xs">
-        <!-- Top Logo Icon (Teal Solid) -->
-        <div class="flex flex-col items-center gap-6">
-            <a href="{% url 'my_tickets' %}" class="w-10 h-10 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-sm hover:bg-teal-700 transition-colors" title="Tuntas IT Helpdesk">
-                <i data-lucide="check-check" class="w-6 h-6 stroke-[2.5]"></i>
-            </a>
+    <!-- Mobile Slideover Backdrop Overlay -->
+    <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition.opacity 
+         class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 md:hidden"></div>
 
-            <!-- Nav Icons -->
-            {% if user.is_authenticated %}
-                <nav class="flex flex-col gap-3">
-                    <a href="{% url 'my_tickets' %}" 
-                       title="Tiket Saya"
-                       class="w-11 h-11 rounded-xl flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'my_tickets' %}bg-teal-50 text-teal-700 font-bold border border-teal-200{% else %}text-slate-400 hover:text-slate-700 hover:bg-slate-50{% endif %}">
-                        <i data-lucide="layout-grid" class="w-5 h-5"></i>
+    <!-- Collapsible & Slideover Left Sidebar -->
+    <aside class="unfold-sidebar flex flex-col justify-between flex-shrink-0 z-40 fixed md:sticky top-0 h-screen transition-all duration-300 shadow-sm"
+           :class="sidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full md:translate-x-0 md:w-16 overflow-hidden'">
+        
+        <div class="p-3.5 space-y-4 overflow-y-auto overflow-x-hidden">
+            
+            <!-- Brand Header -->
+            <div class="px-2 py-1.5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3 min-h-[44px]">
+                <a href="{% url 'my_tickets' %}" class="flex items-center gap-3 group overflow-hidden">
+                    <img src="{% static 'images/logo-tuntas.png' %}" alt="Tuntas Logo" class="w-8 h-8 object-contain flex-shrink-0 group-hover:scale-105 transition-transform" />
+                    <div class="flex flex-col min-w-0" x-show="sidebarOpen" x-transition>
+                        <span class="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-1">
+                            Tuntas Desk
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-medium">IT Helpdesk System</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Sidebar Search Field (Hidden when sidebar is collapsed) -->
+            <div class="relative px-1" x-show="sidebarOpen" x-transition>
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                </div>
+                <input type="text" class="zenith-input w-full pl-9 pr-3 py-1.5 rounded-xl text-xs" placeholder="Search tiket atau ID... ⌘K">
+            </div>
+
+            <!-- Grouped Sidebar Navigation -->
+            <nav class="space-y-4 pt-1">
+                <!-- Group 1: Navigasi Utama -->
+                <div class="space-y-1">
+                    <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 px-3 block" x-show="sidebarOpen">Navigasi</span>
+
+                    <a href="{% url 'my_tickets' %}" title="{% if user.profile.role == 'REQUESTER' %}Aduan & Tiket Saya{% else %}Dashboard Overview{% endif %}"
+                       class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'my_tickets' and not request.GET.assigned %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4 text-teal-600 dark:text-teal-400 flex-shrink-0"></i>
+                            <span x-show="sidebarOpen" class="truncate">
+                                {% if user.profile.role == 'REQUESTER' %}Aduan & Tiket Saya{% else %}Dashboard Overview{% endif %}
+                            </span>
+                        </div>
                     </a>
 
-                    {% if user.is_staff %}
-                        <a href="{% url 'it_queue' %}" 
-                           title="Antrean IT Support"
-                           class="w-11 h-11 rounded-xl flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'it_queue' %}bg-teal-50 text-teal-700 font-bold border border-teal-200{% else %}text-slate-400 hover:text-slate-700 hover:bg-slate-50{% endif %}">
-                            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                    <!-- HANYA TAMPIL UNTUK TEKNISI: Tugas Saya (Tiket yang dialokasikan oleh Lead) -->
+                    {% if user.profile.role == 'TECHNICIAN' %}
+                        <a href="{% url 'it_queue' %}?assigned=me" title="Tugas Saya (Tiket Ditugaskan)"
+                           class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'it_queue' and request.GET.assigned == 'me' %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <i data-lucide="user-check" class="w-4 h-4 text-sky-600 flex-shrink-0"></i>
+                                <span x-show="sidebarOpen" class="truncate">Tugas Saya</span>
+                            </div>
+                            <span x-show="sidebarOpen" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300">Tugas</span>
                         </a>
                     {% endif %}
 
-                    <a href="{% url 'ticket_create' %}" 
-                       title="Buat Tiket Baru"
-                       class="w-11 h-11 rounded-xl flex items-center justify-center transition-all {% if request.resolver_match.url_name == 'ticket_create' %}bg-teal-50 text-teal-700 font-bold border border-teal-200{% else %}text-slate-400 hover:text-slate-700 hover:bg-slate-50{% endif %}">
-                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <!-- HANYA TAMPIL UNTUK TIM IT (TEKNISI / LEAD / ADMIN) -->
+                    {% if user.is_staff %}
+                        <a href="{% url 'it_queue' %}" title="{% if user.profile.role == 'IT_LEAD' or user.is_superuser %}Alokasi Antrean IT{% else %}Semua Antrean IT{% endif %}"
+                           class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'it_queue' and not request.GET.assigned %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <i data-lucide="inbox" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                                <span x-show="sidebarOpen" class="truncate">
+                                    {% if user.profile.role == 'IT_LEAD' or user.is_superuser %}Alokasi Antrean IT{% else %}Semua Antrean IT{% endif %}
+                                </span>
+                            </div>
+                            <span x-show="sidebarOpen" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                                {% if user.profile.role == 'IT_LEAD' or user.is_superuser %}Alokasi{% else %}Queue{% endif %}
+                            </span>
+                        </a>
+                    {% endif %}
+
+                    <!-- HANYA TAMPIL UNTUK LEAD & ADMIN: Pratinjau & Ekspor Laporan Penilaian IT -->
+                    {% if user.profile.role == 'IT_LEAD' or user.is_superuser or user.profile.role == 'ADMIN' %}
+                        <a href="{% url 'reports_view' %}" title="Pratinjau & Cetak Laporan Penilaian IT"
+                           class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'reports_view' %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <i data-lucide="bar-chart-3" class="w-4 h-4 text-teal-600 flex-shrink-0"></i>
+                                <span x-show="sidebarOpen" class="truncate">Laporan Penilaian IT</span>
+                            </div>
+                            <span x-show="sidebarOpen" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">Preview</span>
+                        </a>
+                    {% endif %}
+
+                </div>
+
+                <!-- Group 2: Tiket & Layanan -->
+                <div class="space-y-1">
+                    <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 px-3 block" x-show="sidebarOpen">Tiket & Layanan</span>
+
+                    <a href="{% url 'ticket_create' %}" title="Buat Tiket Baru"
+                       class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'ticket_create' %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <i data-lucide="plus-circle" class="w-4 h-4 text-teal-600 dark:text-teal-400 flex-shrink-0"></i>
+                            <span x-show="sidebarOpen" class="truncate">Buat Tiket Baru</span>
+                        </div>
                     </a>
-                </nav>
-            {% endif %}
+                </div>
+
+                <!-- Group 3: Kelola Pengguna & Master -->
+                {% if user.is_superuser or user.profile.role == 'ADMIN' or user.profile.role == 'IT_LEAD' %}
+                    <div class="space-y-1">
+                        <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 px-3 block" x-show="sidebarOpen">Pengaturan & Pengguna</span>
+
+                        <a href="{% url 'system_admin' %}" title="Kelola Pengguna & Master Data" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'system_admin' %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <i data-lucide="users" class="w-4 h-4 text-rose-500 flex-shrink-0"></i>
+                                <span x-show="sidebarOpen" class="truncate">Kelola Pengguna & Master</span>
+                            </div>
+                            <span x-show="sidebarOpen" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">
+                                {% if user.profile.role == 'IT_LEAD' %}Lead{% else %}Admin{% endif %}
+                            </span>
+                        </a>
+                    </div>
+                {% endif %}
+            </nav>
         </div>
 
-        <!-- Bottom User Controls -->
-        <div class="flex flex-col items-center gap-4">
-            {% if user.is_authenticated %}
-                <form method="post" action="{% url 'logout' %}">
+        <!-- Sidebar Bottom Profile Section -->
+        <div class="p-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {{ user.username|slice:":2"|upper }}
+                    </div>
+                    <div class="flex flex-col min-w-0" x-show="sidebarOpen">
+                        <span class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ user.get_full_name|default:user.username }}</span>
+                        <span class="text-[10px] text-slate-400 truncate">
+                            {% if user.is_superuser or user.profile.role == 'ADMIN' %}Admin System{% elif user.profile.role == 'IT_LEAD' %}IT Lead{% elif user.is_staff %}Teknisi IT{% else %}Karyawan{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <form method="post" action="{% url 'logout' %}" x-show="sidebarOpen">
                     {% csrf_token %}
-                    <button type="submit" title="Logout" class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
-                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <button type="submit" title="Logout" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
                     </button>
                 </form>
-
-                <div class="w-9 h-9 rounded-full bg-teal-700 text-white flex items-center justify-center text-xs font-bold shadow-xs" title="{{ user.username }}">
-                    {{ user.username|slice:":2"|upper }}
-                </div>
-            {% else %}
-                <a href="{% url 'login' %}" title="Login" class="w-10 h-10 rounded-xl flex items-center justify-center text-teal-600 hover:bg-teal-50">
-                    <i data-lucide="log-in" class="w-5 h-5"></i>
-                </a>
-            {% endif %}
+            </div>
         </div>
     </aside>
 
-    <!-- Right Main Area -->
+    <!-- Right Main Layout -->
     <div class="flex-1 flex flex-col min-w-0">
-        <!-- Top Bar Header -->
-        <header class="bg-white border-b border-slate-200 px-6 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-xs">
-            <!-- Breadcrumbs & Page Title -->
-            <div class="space-y-0.5">
-                <div class="flex items-center gap-2 text-xs text-slate-400 font-medium">
-                    <span>Tuntas</span>
-                    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-                    <span>Home</span>
-                    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-                    <span class="text-slate-600 font-semibold">{% block breadcrumb %}Dashboard{% endblock %}</span>
-                </div>
-                <h1 class="text-xl font-bold text-slate-900 tracking-tight">{% block page_title %}Tuntas Helpdesk{% endblock %}</h1>
+        
+        <!-- Top Navigation Header Bar -->
+        <header class="unfold-header px-6 py-3 flex items-center justify-between sticky top-0 z-20">
+            <!-- Left: Sidebar Toggle + Title / Breadcrumb -->
+            <div class="flex items-center gap-3">
+                <button @click="sidebarOpen = !sidebarOpen" class="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <i data-lucide="panel-left" class="w-4.5 h-4.5"></i>
+                </button>
+                <h2 class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <span>Tuntas Desk</span>
+                    <span class="text-slate-300 dark:text-slate-600">/</span>
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">{% block breadcrumb %}Dashboard{% endblock %}</span>
+                </h2>
             </div>
 
-            <!-- Header Action Button -->
+            <!-- Right Controls: System Pill, Online Counter, Theme Toggle, Role Switcher -->
             <div class="flex items-center gap-3">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'ticket_create' %}" class="btn-teal px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                        <span>Buat Tiket</span>
-                    </a>
+                <!-- Instant Role Switcher Dropdown (Seamless Switch without password) -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 hover:bg-slate-200 transition-colors shadow-2xs">
+                        <span class="w-5 h-5 rounded-md bg-teal-600 text-white flex items-center justify-center text-[10px] font-black">
+                            {{ user.username|slice:":1"|upper }}
+                        </span>
+                        <span class="hidden md:inline font-bold">{{ user.username }} (Switch Role)</span>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+                    </button>
 
-                    <div class="pl-3 border-l border-slate-200 flex items-center gap-3">
-                        <div class="text-right hidden sm:block">
-                            <span class="block text-xs font-bold text-slate-800">{{ user.get_full_name|default:user.username }}</span>
-                            <span class="block text-[10px] text-teal-700 font-medium">
-                                {% if user.is_staff %}Tim IT Support{% else %}Karyawan / Requester{% endif %}
-                            </span>
+                    <div x-show="open" @click.outside="open = false" x-transition 
+                         class="absolute right-0 mt-2 w-64 unfold-card p-2 z-50 space-y-1 shadow-xl bg-white dark:bg-[#111827]">
+                        <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                            Switch Account (Instan Tanpa Password)
                         </div>
+                        <a href="{% url 'switch_role' 'budi' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-teal-50 dark:hover:bg-slate-800 transition-colors">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                            <div class="flex flex-col">
+                                <span class="font-bold text-slate-900 dark:text-white">budi</span>
+                                <span class="text-[10px] text-slate-400">Karyawan (Fokus Aduan)</span>
+                            </div>
+                        </a>
+                        <a href="{% url 'switch_role' 'teknisi' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-teal-50 dark:hover:bg-slate-800 transition-colors">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 flex-shrink-0"></span>
+                            <div class="flex flex-col">
+                                <span class="font-bold text-slate-900 dark:text-white">teknisi</span>
+                                <span class="text-[10px] text-slate-400">Teknisi IT (Fokus Fiksasi)</span>
+                            </div>
+                        </a>
+                        <a href="{% url 'switch_role' 'lead' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-teal-50 dark:hover:bg-slate-800 transition-colors">
+                            <span class="w-2.5 h-2.5 rounded-full bg-sky-500 flex-shrink-0"></span>
+                            <div class="flex flex-col">
+                                <span class="font-bold text-slate-900 dark:text-white">lead</span>
+                                <span class="text-[10px] text-slate-400">IT Lead (Supervisor SLA)</span>
+                            </div>
+                        </a>
+                        <a href="{% url 'switch_role' 'admin' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-slate-800 border-t border-slate-100 dark:border-slate-800 pt-2 transition-colors">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 flex-shrink-0"></span>
+                            <div class="flex flex-col">
+                                <span class="font-bold text-rose-600 dark:text-rose-400">admin</span>
+                                <span class="text-[10px] text-slate-400">System Admin (Superuser)</span>
+                            </div>
+                        </a>
                     </div>
-                {% endif %}
+                </div>
+
+
+                <!-- Dark Mode Theme Toggle Button -->
+                <button id="theme-toggle" class="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+                    <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
+                </button>
             </div>
         </header>
 
-        <!-- Flash Alert Messages -->
-        {% if messages %}
-            <div class="px-6 sm:px-8 pt-4">
-                {% for message in messages %}
-                    <div class="p-4 rounded-xl text-xs font-medium flex items-center justify-between border shadow-xs
-                        {% if message.tags == 'error' %}bg-rose-50 text-rose-700 border-rose-200{% elif message.tags == 'success' %}bg-emerald-50 text-emerald-700 border-emerald-200{% else %}bg-teal-50 text-teal-800 border-teal-200{% endif %}">
-                        <div class="flex items-center gap-2.5">
-                            <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}" class="w-4 h-4"></i>
-                            <span>{{ message }}</span>
-                        </div>
-                        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-700">
-                            <i data-lucide="x" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
         <!-- Main Content Area -->
-        <main class="flex-1 p-6 sm:p-8">
+        <main class="p-6 md:p-8 flex-1 w-full max-w-full min-w-0 space-y-6">
+
+            <!-- Django Messages -->
+            {% if messages %}
+                <div class="space-y-2">
+                    {% for message in messages %}
+                        <div class="p-3.5 rounded-xl border text-xs flex items-center justify-between shadow-2xs 
+                            {% if message.tags == 'error' %}bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300
+                            {% elif message.tags == 'success' %}bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300
+                            {% else %}bg-slate-100 dark:bg-slate-800 border-slate-200 text-slate-700 dark:text-slate-200{% endif %}">
+                            <div class="flex items-center gap-2.5">
+                                <i data-lucide="info" class="w-4 h-4 flex-shrink-0"></i>
+                                <span class="font-medium">{{ message }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
             {% block content %}{% endblock %}
         </main>
 
         <!-- Footer -->
-        <footer class="border-t border-slate-200 bg-white py-4 px-8 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 mt-auto">
-            <div>
-                <span class="font-bold text-slate-700">TUNTAS.</span> &copy; 2026 Internal IT Helpdesk System
+        <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f172a] py-3.5 px-8 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 mt-auto">
+            <div class="flex items-center gap-2">
+                <img src="{% static 'images/logo-tuntas.png' %}" alt="Tuntas" class="w-4 h-4 object-contain" />
+                <span class="font-bold text-slate-700 dark:text-slate-300">TUNTAS</span> &copy; 2026 IT Helpdesk System.
             </div>
             <div>
-                <span>Sistem Pelaporan IT Kantor</span>
+                <span>Powered by Django 6</span>
             </div>
         </footer>
     </div>
 
-    <!-- Lucide Icon Init -->
+    <!-- Script Lucide & Theme Toggle -->
     <script>
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        });
         lucide.createIcons();
     </script>
     {% block extra_js %}{% endblock %}

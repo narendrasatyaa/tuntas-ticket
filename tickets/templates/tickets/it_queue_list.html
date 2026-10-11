@@ -1,26 +1,47 @@
 {% extends 'base.html' %}
 
-{% block title %}Antrean IT Support - Tuntas IT Desk{% endblock %}
+{% block title %}Antrean IT Support - Tuntas Unfold Desk{% endblock %}
 {% block breadcrumb %}Antrean IT Support{% endblock %}
-{% block page_title %}Daftar Antrean Tiket Masuk{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-6 w-full max-w-full">
 
-    <!-- Search & Filter Bar -->
-    <div class="synthex-card p-5">
+    <!-- Unfold Header & Filter Bar -->
+    <div class="unfold-card p-5 space-y-4 w-full">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div>
+                <h1 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    {% if request.GET.assigned == 'me' %}Daftar Tugas Saya{% else %}Antrean Kendala IT Support{% endif %}
+                </h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    {% if request.GET.assigned == 'me' %}Daftar tiket aduan yang khusus ditugaskan kepada Anda untuk ditangani fiksasi.{% else %}Pilih & klaim tiket aduan dari karyawan kantor untuk ditangani fiksasi.{% endif %}
+                </p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="{% url 'it_queue' %}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {% if not request.GET.assigned %}bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-2xs{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300{% endif %}">
+                    Semua Antrean
+                </a>
+                <a href="{% url 'it_queue' %}?assigned=me" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {% if request.GET.assigned == 'me' %}bg-sky-600 text-white shadow-2xs{% else %}bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800{% endif %} flex items-center gap-1">
+                    <i data-lucide="user-check" class="w-3.5 h-3.5"></i> Tugas Saya
+                </a>
+                <a href="{% url 'it_queue' %}?assigned=unassigned" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {% if request.GET.assigned == 'unassigned' %}bg-rose-600 text-white shadow-2xs{% else %}bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800{% endif %}">
+                    Belum Ditugaskan
+                </a>
+            </div>
+        </div>
+
         <form method="get" action="{% url 'it_queue' %}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
             <div class="md:col-span-2 relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                     <i data-lucide="search" class="w-4 h-4"></i>
                 </div>
                 <input type="text" name="q" value="{{ request.GET.q|default:'' }}" 
-                       class="synthex-input w-full pl-9 pr-3 py-2 rounded-xl text-xs" 
+                       class="unfold-input w-full pl-9 pr-3 py-2 rounded-xl text-xs" 
                        placeholder="Cari ID tiket, judul aduan, atau pelapor...">
             </div>
 
             <div>
-                <select name="status" class="synthex-input w-full px-3 py-2 rounded-xl text-xs">
+                <select name="status" class="unfold-input w-full px-3 py-2 rounded-xl text-xs font-medium">
                     <option value="">Semua Status</option>
                     <option value="OPEN" {% if request.GET.status == 'OPEN' %}selected{% endif %}>Open</option>
                     <option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
@@ -30,7 +51,7 @@
             </div>
 
             <div>
-                <select name="priority" class="synthex-input w-full px-3 py-2 rounded-xl text-xs">
+                <select name="priority" class="unfold-input w-full px-3 py-2 rounded-xl text-xs font-medium">
                     <option value="">Semua Prioritas</option>
                     <option value="LOW" {% if request.GET.priority == 'LOW' %}selected{% endif %}>Low</option>
                     <option value="MEDIUM" {% if request.GET.priority == 'MEDIUM' %}selected{% endif %}>Medium</option>
@@ -40,54 +61,47 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <button type="submit" class="w-full btn-teal font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs">
+                <button type="submit" class="w-full btn-teal font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-2xs">
                     <i data-lucide="filter" class="w-3.5 h-3.5"></i> Filter
                 </button>
-                <a href="{% url 'it_queue' %}" class="p-2 rounded-xl bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors" title="Reset Filter">
+                <a href="{% url 'it_queue' %}" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 transition-colors" title="Reset Filter">
                     <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                 </a>
             </div>
         </form>
     </div>
 
-    <!-- Table Container -->
-    <div class="synthex-card overflow-hidden">
-        <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Antrean Tiket Penanganan IT</h2>
-            <div class="flex items-center gap-2">
-                <a href="{% url 'it_queue' %}?assigned=unassigned" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-                    Belum Ditugaskan
-                </a>
-                <a href="{% url 'it_queue' %}?assigned=me" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-200">
-                    Tugas Saya
-                </a>
-            </div>
+    <!-- Table Container Card -->
+    <div class="unfold-card overflow-hidden w-full">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Daftar Antrean Kendala IT Support</h2>
+            <span class="text-xs text-slate-400">Total: <strong>{{ tickets|length }} Tiket</strong></span>
         </div>
 
         {% if tickets %}
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto w-full">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="border-b border-slate-200 text-[11px] uppercase font-bold text-slate-400 bg-slate-50/80 tracking-wider">
+                        <tr class="border-b border-slate-100 dark:border-slate-800 text-[11px] uppercase font-bold text-slate-400 bg-slate-50/60 dark:bg-slate-800/40 tracking-wider">
                             <th class="py-3.5 px-6">Pelapor & Judul Tiket</th>
                             <th class="py-3.5 px-4">Kategori</th>
                             <th class="py-3.5 px-4">Prioritas</th>
                             <th class="py-3.5 px-4">Status</th>
                             <th class="py-3.5 px-4">Teknisi</th>
-                            <th class="py-3.5 px-4">Waktu</th>
+                            <th class="py-3.5 px-4">Waktu Pengajuan</th>
                             <th class="py-3.5 px-6 text-right">Penanganan</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-xs font-medium">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-medium">
                         {% for ticket in tickets %}
-                            <tr class="hover:bg-slate-50 transition-colors group">
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                                 <td class="py-4 px-6">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-teal-700 text-white font-bold flex items-center justify-center text-xs flex-shrink-0">
+                                        <div class="w-8 h-8 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold flex items-center justify-center text-xs flex-shrink-0">
                                             {{ ticket.created_by.username|slice:":2"|upper }}
                                         </div>
                                         <div class="space-y-0.5">
-                                            <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="font-bold text-slate-900 group-hover:text-teal-700 transition-colors block line-clamp-1">
+                                            <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors block line-clamp-1">
                                                 {{ ticket.title }}
                                             </a>
                                             <div class="flex items-center gap-2 text-[11px]">
@@ -99,8 +113,8 @@
                                     </div>
                                 </td>
 
-                                <td class="py-4 px-4 text-slate-600">
-                                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[11px] font-semibold text-slate-700">
+                                <td class="py-4 px-4 text-slate-600 dark:text-slate-300">
+                                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold">
                                         {{ ticket.category.name }}
                                     </span>
                                 </td>
@@ -126,33 +140,76 @@
                                     </span>
                                 </td>
 
-                                <td class="py-4 px-4 text-slate-600">
-                                    {% if ticket.assigned_to %}
-                                        <span class="font-semibold text-slate-700 flex items-center gap-1">
-                                            <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
-                                            {{ ticket.assigned_to.username }}
-                                        </span>
+                                <td class="py-4 px-4 text-slate-600 dark:text-slate-300">
+                                    {% if is_lead_or_admin %}
+                                        <form method="post" action="{% url 'update_ticket_status' ticket.ticket_id %}" class="flex items-center gap-1.5">
+                                            {% csrf_token %}
+                                            <select name="assigned_to" onchange="this.form.submit()" title="Alokasikan Teknisi (Wewenang IT Lead)" class="unfold-input px-2.5 py-1 rounded-xl text-[11px] font-bold text-teal-700 dark:text-teal-300">
+                                                <option value="">-- Belum Ditugaskan --</option>
+                                                {% for tech in staff_users %}
+                                                    <option value="{{ tech.id }}" {% if ticket.assigned_to == tech %}selected{% endif %}>
+                                                        {{ tech.get_full_name|default:tech.username }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </form>
                                     {% else %}
-                                        <span class="text-rose-600 font-semibold italic text-[11px]">Belum Ditugaskan</span>
+                                        {% if ticket.assigned_to %}
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-semibold {% if ticket.assigned_to == user %}text-teal-600 dark:text-teal-400 font-bold{% else %}text-slate-700 dark:text-slate-300{% endif %}">
+                                                <i data-lucide="user-check" class="w-3.5 h-3.5 {% if ticket.assigned_to == user %}text-teal-500{% else %}text-slate-400{% endif %}"></i>
+                                                {{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}
+                                                {% if ticket.assigned_to == user %}
+                                                    <span class="px-1.5 py-0.2 rounded text-[10px] bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">Saya</span>
+                                                {% endif %}
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 italic">
+                                                <i data-lucide="clock" class="w-3 h-3"></i> Menunggu Lead
+                                            </span>
+                                        {% endif %}
                                     {% endif %}
                                 </td>
 
-                                <td class="py-4 px-4 text-slate-500 text-[11px]">
-                                    {{ ticket.created_at|date:"d M Y, H:i" }}
+
+                                <td class="py-4 px-4 text-slate-500 dark:text-slate-400 text-[11px]">
+                                    <div>{{ ticket.created_at|date:"d M Y, H:i" }}</div>
+                                    {% if ticket.due_date %}
+                                        {% if ticket.is_sla_breached %}
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-rose-600 font-bold mt-0.5">
+                                                <i data-lucide="alert-triangle" class="w-3 h-3"></i> Over SLA
+                                            </span>
+                                        {% elif ticket.status == 'RESOLVED' or ticket.status == 'CLOSED' %}
+                                            {% if ticket.rating %}
+                                                <span class="inline-flex items-center gap-1 text-[10px] text-amber-500 font-bold mt-0.5">
+                                                    <i data-lucide="star" class="w-3 h-3 fill-amber-400 text-amber-400"></i>
+                                                    <span>{{ ticket.rating }}.0</span>
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-bold mt-0.5">
+                                                    <i data-lucide="check" class="w-3 h-3"></i> Tuntas
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 font-medium mt-0.5">
+                                                <i data-lucide="clock" class="w-3 h-3"></i> {{ ticket.time_until_sla }}
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
                                 </td>
 
                                 <td class="py-4 px-6 text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        {% if not ticket.assigned_to %}
-                                            <a href="{% url 'assign_to_me' ticket.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-bold btn-teal shadow-xs inline-flex items-center gap-1">
-                                                <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
-                                                Assign to Me
+                                        {% if ticket.assigned_to == user %}
+                                            <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-bold btn-teal shadow-2xs inline-flex items-center gap-1">
+                                                <i data-lucide="wrench" class="w-3.5 h-3.5"></i>
+                                                <span>Fiksasi</span>
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors inline-flex items-center gap-1">
+                                                <span>Lihat</span>
+                                                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                                             </a>
                                         {% endif %}
-                                        <a href="{% url 'ticket_detail' ticket.ticket_id %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors inline-flex items-center gap-1">
-                                            <span>Lihat</span>
-                                            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -160,25 +217,10 @@
                     </tbody>
                 </table>
             </div>
-
-            {% if is_paginated %}
-                <div class="p-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
-                    <div>Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}</div>
-                    <div class="flex items-center gap-2">
-                        {% if page_obj.has_previous %}
-                            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-semibold">Sebelumnya</a>
-                        {% endif %}
-                        {% if page_obj.has_next %}
-                            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-semibold">Selanjutnya</a>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
-
         {% else %}
             <div class="p-12 text-center space-y-3">
                 <i data-lucide="check-circle-2" class="w-10 h-10 text-emerald-500 mx-auto"></i>
-                <h3 class="text-sm font-bold text-slate-800">Antrean Tiket Kosong</h3>
+                <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">Antrean Tiket Kosong</h3>
                 <p class="text-xs text-slate-400">Tidak ada tiket yang perlu ditangani saat ini.</p>
             </div>
         {% endif %}
