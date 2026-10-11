@@ -91,31 +91,53 @@
                 <div class="space-y-1">
                     <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 px-3 block" x-show="sidebarOpen">Navigasi</span>
 
-                    <a href="{% url 'my_tickets' %}" title="Dashboard Overview"
+                    <a href="{% url 'my_tickets' %}" title="{% if user.profile.role == 'REQUESTER' %}Aduan & Tiket Saya{% else %}Dashboard Overview{% endif %}"
                        class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'my_tickets' and not request.GET.assigned %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <i data-lucide="layout-dashboard" class="w-4 h-4 text-teal-600 dark:text-teal-400 flex-shrink-0"></i>
-                            <span x-show="sidebarOpen" class="truncate">Dashboard Overview</span>
+                            <span x-show="sidebarOpen" class="truncate">
+                                {% if user.profile.role == 'REQUESTER' %}Aduan & Tiket Saya{% else %}Dashboard Overview{% endif %}
+                            </span>
                         </div>
                     </a>
 
-                    <a href="{% url 'it_queue' %}?assigned=me" title="Tugas Saya (Tiket Ditugaskan)"
-                       class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'it_queue' and request.GET.assigned == 'me' %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                            <i data-lucide="user-check" class="w-4 h-4 text-sky-600 flex-shrink-0"></i>
-                            <span x-show="sidebarOpen" class="truncate">Tugas Saya</span>
-                        </div>
-                        <span x-show="sidebarOpen" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300">Tugas</span>
-                    </a>
+                    <!-- HANYA TAMPIL UNTUK TEKNISI: Tugas Saya (Tiket yang dialokasikan oleh Lead) -->
+                    {% if user.profile.role == 'TECHNICIAN' %}
+                        <a href="{% url 'it_queue' %}?assigned=me" title="Tugas Saya (Tiket Ditugaskan)"
+                           class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'it_queue' and request.GET.assigned == 'me' %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <i data-lucide="user-check" class="w-4 h-4 text-sky-600 flex-shrink-0"></i>
+                                <span x-show="sidebarOpen" class="truncate">Tugas Saya</span>
+                            </div>
+                            <span x-show="sidebarOpen" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300">Tugas</span>
+                        </a>
+                    {% endif %}
 
+                    <!-- HANYA TAMPIL UNTUK TIM IT (TEKNISI / LEAD / ADMIN) -->
                     {% if user.is_staff %}
-                        <a href="{% url 'it_queue' %}" title="Antrean IT Support"
+                        <a href="{% url 'it_queue' %}" title="{% if user.profile.role == 'IT_LEAD' or user.is_superuser %}Alokasi Antrean IT{% else %}Semua Antrean IT{% endif %}"
                            class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'it_queue' and not request.GET.assigned %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
                             <div class="flex items-center gap-2.5 min-w-0">
                                 <i data-lucide="inbox" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
-                                <span x-show="sidebarOpen" class="truncate">Antrean IT Support</span>
+                                <span x-show="sidebarOpen" class="truncate">
+                                    {% if user.profile.role == 'IT_LEAD' or user.is_superuser %}Alokasi Antrean IT{% else %}Semua Antrean IT{% endif %}
+                                </span>
                             </div>
-                            <span x-show="sidebarOpen" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">Open</span>
+                            <span x-show="sidebarOpen" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                                {% if user.profile.role == 'IT_LEAD' or user.is_superuser %}Alokasi{% else %}Queue{% endif %}
+                            </span>
+                        </a>
+                    {% endif %}
+
+                    <!-- HANYA TAMPIL UNTUK LEAD & ADMIN: Pratinjau & Ekspor Laporan Penilaian IT -->
+                    {% if user.profile.role == 'IT_LEAD' or user.is_superuser or user.profile.role == 'ADMIN' %}
+                        <a href="{% url 'reports_view' %}" title="Pratinjau & Cetak Laporan Penilaian IT"
+                           class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'reports_view' %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <i data-lucide="bar-chart-3" class="w-4 h-4 text-teal-600 flex-shrink-0"></i>
+                                <span x-show="sidebarOpen" class="truncate">Laporan Penilaian IT</span>
+                            </div>
+                            <span x-show="sidebarOpen" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">Preview</span>
                         </a>
                     {% endif %}
 
@@ -134,17 +156,19 @@
                     </a>
                 </div>
 
-                <!-- Group 3: Master System -->
-                {% if user.is_superuser or user.profile.role == 'ADMIN' %}
+                <!-- Group 3: Kelola Pengguna & Master -->
+                {% if user.is_superuser or user.profile.role == 'ADMIN' or user.profile.role == 'IT_LEAD' %}
                     <div class="space-y-1">
-                        <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 px-3 block" x-show="sidebarOpen">Master System</span>
+                        <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 px-3 block" x-show="sidebarOpen">Pengaturan & Pengguna</span>
 
-                        <a href="{% url 'system_admin' %}" title="Master Admin Panel" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'system_admin' %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <a href="{% url 'system_admin' %}" title="Kelola Pengguna & Master Data" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors {% if request.resolver_match.url_name == 'system_admin' %}bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white{% endif %}">
                             <div class="flex items-center gap-2.5 min-w-0">
-                                <i data-lucide="settings" class="w-4 h-4 text-rose-500 flex-shrink-0"></i>
-                                <span x-show="sidebarOpen" class="truncate">Master Admin Panel</span>
+                                <i data-lucide="users" class="w-4 h-4 text-rose-500 flex-shrink-0"></i>
+                                <span x-show="sidebarOpen" class="truncate">Kelola Pengguna & Master</span>
                             </div>
-                            <span x-show="sidebarOpen" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">Admin</span>
+                            <span x-show="sidebarOpen" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">
+                                {% if user.profile.role == 'IT_LEAD' %}Lead{% else %}Admin{% endif %}
+                            </span>
                         </a>
                     </div>
                 {% endif %}
