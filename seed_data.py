@@ -32,7 +32,7 @@ def seed():
 
     # A. ADMIN (Superuser - Kelola Semua System)
     admin_user, _ = User.objects.get_or_create(username="admin", defaults={
-        "email": "admin@kantor.com",
+        "email": "admin@tuntas.id",
         "first_name": "System",
         "last_name": "Administrator",
         "is_staff": True,
@@ -46,7 +46,7 @@ def seed():
 
     # B. IT LEAD / SUPERVISOR (Supervisor Support - Monitor SLA & Assign Team)
     lead_user, _ = User.objects.get_or_create(username="lead", defaults={
-        "email": "lead@kantor.com",
+        "email": "lead@tuntas.id",
         "first_name": "Hendky",
         "last_name": "IT Supervisor",
         "is_staff": True,
@@ -60,7 +60,7 @@ def seed():
 
     # C. TECHNICIAN (Teknisi Support - Fokus Fiksasi Kendala)
     tech_user, _ = User.objects.get_or_create(username="teknisi", defaults={
-        "email": "teknisi@kantor.com",
+        "email": "teknisi@tuntas.id",
         "first_name": "Rizky",
         "last_name": "Support Fiksasi",
         "is_staff": True,
@@ -74,7 +74,7 @@ def seed():
 
     # D. REQUESTER (Karyawan - Fokus Aduan)
     budi_user, _ = User.objects.get_or_create(username="budi", defaults={
-        "email": "budi@kantor.com",
+        "email": "budi@tuntas.id",
         "first_name": "Budi",
         "last_name": "Santoso",
         "is_staff": False,

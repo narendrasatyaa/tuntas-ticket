@@ -99,7 +99,7 @@ Setelah menjalankan `python3 seed_data.py`, Anda dapat login menggunakan akun be
 | :--- | :--- | :--- | :--- |
 | **System Admin** | `admin` | `password123` | Akses penuh master data & export |
 | **IT Supervisor** | `lead` | `password123` | Monitor antrean & assign teknisi |
-| **Staff IT / Teknisi**| `teknisi1` | `password123` | Eksekusi tiket di "Tugas Saya" |
+| **Staff IT / Teknisi**| `teknisi` | `password123` | Eksekusi tiket di "Tugas Saya" |
 | **Karyawan / User** | `budi` | `password123` | Buat tiket & berikan ulasan |
 
 ---
